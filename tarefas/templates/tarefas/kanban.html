@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Tarefas - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Quadro de Tarefas</h1>
+        <p class="page-subtitle">Kanban para organização do setor de TI</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novaTarefaModal">
+        <i class="bi bi-plus-lg"></i> Nova Tarefa
+    </button>
+</div>
+
+<div class="kanban-board">
+    <!-- A Fazer -->
+    <div class="kanban-column">
+        <h6><i class="bi bi-circle me-1 text-secondary"></i> A Fazer ({{ a_fazer|length }})</h6>
+        {% for tarefa in a_fazer %}
+        <div class="kanban-item" draggable="true" data-id="{{ tarefa.pk }}">
+            <div class="kanban-title">{{ tarefa.titulo }}</div>
+            {% if tarefa.descricao %}<small class="text-muted d-block mb-2">{{ tarefa.descricao|truncatechars:80 }}</small>{% endif %}
+            <div class="kanban-meta">
+                <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
+                {% if tarefa.prazo %}<span class="ms-1"><i class="bi bi-calendar3"></i> {{ tarefa.prazo|date:"d/m" }}</span>{% endif %}
+                {% if tarefa.responsavel %}<span class="ms-1" title="{{ tarefa.responsavel.get_full_name }}"><i class="bi bi-person"></i></span>{% endif %}
+            </div>
+            <div class="mt-2 d-flex gap-1">
+                <form method="post" action="{% url 'tarefa_update_status' tarefa.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="andamento">
+                    <button class="btn btn-outline-primary btn-sm" title="Mover para Em Andamento"><i class="bi bi-arrow-right"></i></button>
+                </form>
+                <a href="{% url 'tarefa_edit' tarefa.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{% url 'tarefa_delete' tarefa.pk %}" class="d-inline" onsubmit="return confirm('Excluir esta tarefa?')">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted small text-center py-3">Nenhuma tarefa</p>
+        {% endfor %}
+    </div>
+
+    <!-- Em Andamento -->
+    <div class="kanban-column">
+        <h6><i class="bi bi-arrow-repeat me-1 text-warning"></i> Em Andamento ({{ andamento|length }})</h6>
+        {% for tarefa in andamento %}
+        <div class="kanban-item">
+            <div class="kanban-title">{{ tarefa.titulo }}</div>
+            {% if tarefa.descricao %}<small class="text-muted d-block mb-2">{{ tarefa.descricao|truncatechars:80 }}</small>{% endif %}
+            <div class="kanban-meta">
+                <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
+                {% if tarefa.prazo %}<span class="ms-1"><i class="bi bi-calendar3"></i> {{ tarefa.prazo|date:"d/m" }}</span>{% endif %}
+            </div>
+            <div class="mt-2 d-flex gap-1">
+                <form method="post" action="{% url 'tarefa_update_status' tarefa.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="concluido">
+                    <button class="btn btn-outline-success btn-sm" title="Concluir"><i class="bi bi-check-lg"></i></button>
+                </form>
+                <form method="post" action="{% url 'tarefa_update_status' tarefa.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" value="a_fazer">
+                    <button class="btn btn-outline-secondary btn-sm" title="Voltar"><i class="bi bi-arrow-left"></i></button>
+                </form>
+                <a href="{% url 'tarefa_edit' tarefa.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted small text-center py-3">Nenhuma tarefa</p>
+        {% endfor %}
+    </div>
+
+    <!-- Concluído -->
+    <div class="kanban-column">
+        <h6><i class="bi bi-check-circle me-1 text-success"></i> Concluído ({{ concluido|length }})</h6>
+        {% for tarefa in concluido %}
+        <div class="kanban-item" style="opacity:0.75;">
+            <div class="kanban-title text-decoration-line-through">{{ tarefa.titulo }}</div>
+            <div class="kanban-meta">
+                <small class="text-muted"><i class="bi bi-calendar-check"></i> {{ tarefa.atualizado_em|date:"d/m" }}</small>
+            </div>
+            <div class="mt-2">
+                <form method="post" action="{% url 'tarefa_delete' tarefa.pk %}" class="d-inline" onsubmit="return confirm('Excluir esta tarefa?')">
+                    {% csrf_token %}
+                    <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted small text-center py-3">Nenhuma tarefa concluída</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal Nova Tarefa -->
+<div class="modal fade" id="novaTarefaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Tarefa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'tarefa_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    {{ form|crispy }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Criar Tarefa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

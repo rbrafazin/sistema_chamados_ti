@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}{{ tarefa.titulo }} - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="page-title">{{ tarefa.titulo }}</h1>
+        <p class="page-subtitle">
+            <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
+            <span class="ms-2 badge bg-secondary">{{ tarefa.get_status_display }}</span>
+            {% if tarefa.prazo %}<span class="ms-2 text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ tarefa.prazo|date:"d/m/Y" }}</span>{% endif %}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'tarefa_edit' tarefa.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'tarefa_delete' tarefa.pk %}" class="btn btn-outline-danger btn-sm" data-confirm="Excluir esta tarefa?"><i class="bi bi-trash"></i> Excluir</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="card-header">Detalhes</div>
+            <div class="card-body">
+                {% if tarefa.descricao %}
+                <p>{{ tarefa.descricao|linebreaks }}</p>
+                {% else %}
+                <p class="text-muted">Sem descrição.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="card-header">Informações</div>
+            <div class="card-body small">
+                <div class="mb-2"><span class="text-muted">Criado por:</span> <strong>{{ tarefa.criado_por.get_full_name|default:'—' }}</strong></div>
+                <div class="mb-2"><span class="text-muted">Responsável:</span> <strong>{{ tarefa.responsavel.get_full_name|default:'Não atribuído' }}</strong></div>
+                <div class="mb-2"><span class="text-muted">Prazo:</span> <strong>{{ tarefa.prazo|date:"d/m/Y"|default:'Sem prazo' }}</strong></div>
+                <div class="mb-2"><span class="text-muted">Criado em:</span> <strong>{{ tarefa.criado_em|date:"d/m/Y H:i" }}</strong></div>
+                <div><span class="text-muted">Atualizado em:</span> <strong>{{ tarefa.atualizado_em|date:"d/m/Y H:i" }}</strong></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

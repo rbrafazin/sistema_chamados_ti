@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios - ABM TI{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <h1 class="page-title">Relatórios</h1>
+    <p class="page-subtitle">Indicadores e métricas do setor de TI</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="card-icon blue"><i class="bi bi-ticket-perforated"></i></div>
+            <div class="card-info"><h3>{{ total_chamados }}</h3><p>Total de Chamados</p></div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="card-icon green"><i class="bi bi-check-circle"></i></div>
+            <div class="card-info"><h3>{{ chamados_resolvidos }}</h3><p>Chamados Resolvidos</p></div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card">
+            <div class="card-icon orange"><i class="bi bi-graph-up"></i></div>
+            <div class="card-info"><h3>{{ taxa_resolucao }}%</h3><p>Taxa de Resolução</p></div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="content-card">
+            <div class="card-header">Chamados por Status</div>
+            <div class="card-body"><canvas id="chartStatus" height="260"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="content-card">
+            <div class="card-header">Chamados por Prioridade</div>
+            <div class="card-body"><canvas id="chartPrioridade" height="260"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="content-card">
+            <div class="card-header">Equipamentos por Categoria</div>
+            <div class="card-body"><canvas id="chartCategoria" height="260"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="content-card">
+            <div class="card-header">Produtividade Mensal</div>
+            <div class="card-body"><canvas id="chartMensal" height="260"></canvas></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const colors = ['#0d6efd','#ffc107','#198754','#dc3545','#6f42c1','#fd7e14'];
+    const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
+
+    new Chart(document.getElementById('chartStatus'), {
+        type: 'doughnut',
+        data: { labels: {{ labels_status|safe }}, datasets: [{ data: {{ data_status|safe }}, backgroundColor: colors }] },
+        options: chartOptions
+    });
+
+    new Chart(document.getElementById('chartPrioridade'), {
+        type: 'bar',
+        data: { labels: {{ labels_prioridade|safe }}, datasets: [{ label: 'Chamados', data: {{ data_prioridade|safe }}, backgroundColor: ['#198754','#0d6efd','#ffc107','#dc3545'] }] },
+        options: chartOptions
+    });
+
+    new Chart(document.getElementById('chartCategoria'), {
+        type: 'pie',
+        data: { labels: {{ labels_categoria|safe }}, datasets: [{ data: {{ data_categoria|safe }}, backgroundColor: colors }] },
+        options: chartOptions
+    });
+
+    new Chart(document.getElementById('chartMensal'), {
+        type: 'line',
+        data: {
+            labels: {{ labels_mes|safe }},
+            datasets: [
+                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', tension: 0.3, fill: true },
+                { label: 'Tarefas Concluídas', data: {{ tarefas_mes|safe }}, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true }
+            ]
+        },
+        options: chartOptions
+    });
+});
+</script>
+{% endblock %}

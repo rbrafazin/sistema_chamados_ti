@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Editar Tarefa - ABM TI{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <h1 class="page-title">Editar Tarefa</h1>
+    <p class="page-subtitle">{{ tarefa.titulo }}</p>
+</div>
+<div class="content-card">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8 mb-3">{{ form.titulo|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.prazo|as_crispy_field }}</div>
+            </div>
+            {{ form.descricao|as_crispy_field }}
+            <div class="row">
+                <div class="col-md-4 mb-3">{{ form.prioridade|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.status|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.responsavel|as_crispy_field }}</div>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+            <a href="{% url 'tarefas_kanban' %}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

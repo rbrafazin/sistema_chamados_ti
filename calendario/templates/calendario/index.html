@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% block title %}Calendário - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="page-title">Calendário</h1>
+        <p class="page-subtitle">Agenda de manutenções, visitas, backups e compromissos</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventoModal" id="btnNovoEvento">
+        <i class="bi bi-plus-lg"></i> Novo Evento
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="content-card">
+            <div class="card-body p-3">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="card-header">Próximos Eventos</div>
+            <div class="card-body p-0" id="proximos-eventos">
+                <div class="text-muted text-center py-4">Carregando...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="eventoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventoModalTitle">Novo Evento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'evento_create' %}" id="eventoForm">
+                {% csrf_token %}
+                <input type="hidden" name="evento_id" id="eventoId">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Título</label>
+                        <input type="text" name="titulo" id="eventoTitulo" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Descrição</label>
+                        <textarea name="descricao" id="eventoDescricao" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" id="eventoTipo" class="form-select">
+                                <option value="manutencao">Manutenção</option>
+                                <option value="visita">Visita Técnica</option>
+                                <option value="backup">Backup</option>
+                                <option value="vencimento">Vencimento</option>
+                                <option value="reuniao">Reunião</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Prioridade</label>
+                            <select name="prioridade" id="eventoPrioridade" class="form-select">
+                                <option value="baixa">Baixa</option>
+                                <option value="media" selected>Média</option>
+                                <option value="alta">Alta</option>
+                                <option value="critica">Crítica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Data</label>
+                        <input type="date" name="data" id="eventoData" class="form-control" required>
+                    </div>
+                    <input type="hidden" name="cor" id="eventoCorHidden" value="#0f62fe">
+                    <input type="hidden" name="dia_todo" value="1">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger me-auto d-none" id="btnExcluirEvento"><i class="bi bi-trash"></i> Excluir</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'pt-br',
+        headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+        buttonText: { today: 'Hoje' },
+        height: 'auto',
+        events: '{% url "eventos_json" %}',
+        navLinks: true,
+        dateClick: function(info) {
+            document.getElementById('eventoModalTitle').textContent = 'Novo Evento';
+            document.getElementById('eventoForm').action = '{% url "evento_create" %}';
+            document.getElementById('eventoForm').reset();
+            document.getElementById('eventoId').value = '';
+            document.getElementById('eventoData').value = info.dateStr;
+            document.getElementById('eventoPrioridade').value = 'media';
+            document.getElementById('eventoCorHidden').value = '#0f62fe';
+            document.getElementById('btnExcluirEvento').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('eventoModal')).show();
+        },
+        eventDidMount: function(info) {
+            info.el.title = info.event.title + (info.event.extendedProps.descricao ? '\n' + info.event.extendedProps.descricao : '');
+        },
+        eventClick: function(info) {
+            var e = info.event;
+            document.getElementById('eventoModalTitle').textContent = 'Editar Evento';
+            document.getElementById('eventoForm').action = '{% url "evento_edit" 0 %}'.replace('0', e.id);
+            document.getElementById('eventoId').value = e.id;
+            document.getElementById('eventoTitulo').value = e.title;
+            document.getElementById('eventoDescricao').value = e.extendedProps.descricao || '';
+            document.getElementById('eventoTipo').value = e.extendedProps.tipo || 'outro';
+            document.getElementById('eventoPrioridade').value = e.extendedProps.prioridade || 'media';
+            document.getElementById('eventoData').value = e.startStr.substring(0,10);
+            document.getElementById('eventoCorHidden').value = e.backgroundColor || '#0f62fe';
+            document.getElementById('btnExcluirEvento').classList.remove('d-none');
+            document.getElementById('btnExcluirEvento').onclick = function() {
+                if(confirm('Excluir este evento?')) {
+                    var f = document.createElement('form');
+                    f.method='POST';                     f.action='{% url "evento_delete" 0 %}'.replace('0', e.id);
+                    f.innerHTML='{% csrf_token %}';
+                    document.body.appendChild(f); f.submit();
+                }
+            };
+            new bootstrap.Modal(document.getElementById('eventoModal')).show();
+        },
+    });
+    calendar.render();
+
+    document.getElementById('btnNovoEvento').addEventListener('click', function() {
+        document.getElementById('eventoModalTitle').textContent = 'Novo Evento';
+        document.getElementById('eventoForm').action = '{% url "evento_create" %}';
+        document.getElementById('eventoForm').reset();
+        document.getElementById('eventoId').value = '';
+        document.getElementById('eventoPrioridade').value = 'media';
+        document.getElementById('eventoCorHidden').value = '#0f62fe';
+        document.getElementById('btnExcluirEvento').classList.add('d-none');
+    });
+
+    var cores = {baixa:'#0e6027',media:'#0f62fe',alta:'#b85c00',critica:'#da1e28'};
+    document.getElementById('eventoPrioridade').addEventListener('change', function() {
+        document.getElementById('eventoCorHidden').value = cores[this.value] || '#0f62fe';
+    });
+
+    fetch('{% url "eventos_json" %}')
+        .then(r => r.json())
+        .then(events => {
+            var now = new Date();
+            var upcoming = events.filter(function(e) { return new Date(e.start) >= now; })
+                                 .sort(function(a,b) { return new Date(a.start) - new Date(b.start); })
+                                 .slice(0, 5);
+            var html = '';
+            if(upcoming.length === 0) {
+                html = '<div class="text-muted text-center py-4">Nenhum evento futuro</div>';
+            } else {
+                upcoming.forEach(function(e, i) {
+                    var date = new Date(e.start);
+                    var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+                    var meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+                    var dataStr = dias[date.getDay()] + ', ' + date.getDate() + ' ' + meses[date.getMonth()] + ' ' + date.getFullYear();
+                    html += '<div class="d-flex align-items-start gap-3 p-3 border-bottom">';
+                    html += '<div style="width:4px;height:40px;background:'+e.color+';border-radius:2px;flex-shrink:0;margin-top:2px;"></div>';
+                    html += '<div class="flex-grow-1"><div class="fw-medium small">'+e.title+'</div>';
+                    html += '<small class="text-muted">'+dataStr;
+                    if(e.extendedProps.tipo) html += ' · '+e.extendedProps.tipo;
+                    html += '</small></div></div>';
+                });
+            }
+            document.getElementById('proximos-eventos').innerHTML = html;
+        });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Chamado - ABM TI{% endblock %}
+{% block content %}
+<div class="content-card" style="max-width:500px; margin: 60px auto;">
+    <div class="card-body text-center py-4">
+        <i class="bi bi-exclamation-triangle text-danger display-4"></i>
+        <h4 class="mt-3">Excluir Chamado #{{ chamado.pk }}?</h4>
+        <p class="text-muted">{{ chamado.titulo }}</p>
+        <p class="text-muted small">Esta ação não pode ser desfeita.</p>
+        <form method="post" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Sim, excluir</button>
+            <a href="{% url 'chamados_detail' chamado.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

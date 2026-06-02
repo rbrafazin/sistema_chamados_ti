@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load inventario_tags %}
+{% block title %}Inventário - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Inventário</h1>
+        <p class="page-subtitle">Controle de equipamentos de TI</p>
+    </div>
+    <a href="{% url 'inventario_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Equipamento</a>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="document.getElementsByName('busca')[0].value=''; this.form.submit()">
+                <option value="">Todas Categorias</option>
+                {% for val, label in categorias %}
+                <option value="{{ val }}" {% if current_categoria == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="document.getElementsByName('busca')[0].value=''; this.form.submit()">
+                <option value="">Todos Status</option>
+                {% for val, label in status_list %}
+                <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="busca" class="form-control form-control-sm" placeholder="Pesquisar..." value="{{ busca }}" style="max-width:250px;">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+            <a href="{% url 'inventario_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover" id="data-table">
+                <thead>
+                    <tr>
+                        <th>Patrimônio</th>
+                        <th>Categoria</th>
+                        <th>Marca/Modelo</th>
+                        <th>Localização</th>
+                        <th>Responsável</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for eq in equipamentos %}
+                    <tr>
+                        <td><strong>{{ eq.patrimonio }}</strong></td>
+                        <td><i class="bi {{ eq.categoria|icone_categoria }} me-1"></i>{{ eq.get_categoria_display }}</td>
+                        <td>{{ eq.marca }} {{ eq.modelo }}</td>
+                        <td>{{ eq.localizacao }}</td>
+                        <td>{{ eq.responsavel|default:'—' }}</td>
+                        <td>
+                            {% if eq.status == 'ativo' %}<span class="badge bg-success">Ativo</span>
+                            {% elif eq.status == 'manutencao' %}<span class="badge" style="background:#f59e0b;color:#fff;">Em Manutenção</span>
+                            {% elif eq.status == 'inativo' %}<span class="badge bg-secondary">Inativo</span>
+                            {% else %}<span class="badge bg-dark">Descartado</span>{% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'inventario_detail' eq.pk %}" class="btn btn-outline-primary" title="Ver"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'inventario_edit' eq.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'inventario_delete' eq.pk %}" class="btn btn-outline-danger" data-confirm="Excluir este equipamento?" title="Excluir"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Nenhum equipamento encontrado</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include 'includes/pagination.html' with page_obj=equipamentos %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}{{ artigo.titulo }} - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">{{ artigo.titulo }}</h1>
+        <p class="page-subtitle">
+            <i class="bi bi-person me-1"></i> {{ artigo.autor.get_full_name|default:artigo.autor.username }}
+            &middot; <i class="bi bi-calendar3 me-1"></i> {{ artigo.criado_em|date:"d/m/Y H:i" }}
+            &middot; <i class="bi bi-eye me-1"></i> {{ artigo.visualizacoes }} visualizações
+            {% if artigo.categoria %}&middot; <span class="badge bg-secondary">{{ artigo.categoria.nome }}</span>{% endif %}
+        </p>
+        {% if artigo.tags.all %}
+        <div class="mt-2">
+            {% for tag in artigo.tags.all %}
+            <span class="badge bg-light text-dark me-1"><i class="bi bi-tag me-1"></i>{{ tag.nome }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'conhecimento_edit' artigo.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'conhecimento_delete' artigo.pk %}" class="btn btn-outline-danger btn-sm" data-confirm="Excluir este artigo?"><i class="bi bi-trash"></i> Excluir</a>
+    </div>
+</div>
+<div class="content-card">
+    <div class="card-body">
+        <div class="article-content">{{ artigo.conteudo|linebreaks }}</div>
+        {% if artigo.anexo %}
+        <hr>
+        <a href="{{ artigo.anexo.url }}" class="btn btn-outline-primary btn-sm" target="_blank">
+            <i class="bi bi-paperclip"></i> Download Anexo
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

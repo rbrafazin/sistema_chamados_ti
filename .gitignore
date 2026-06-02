@@ -1,0 +1,32 @@
+# Ambiente
+.env
+.env.prod
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Django
+/staticfiles/
+/media/
+db.sqlite3
+
+# Docker
+postgres_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Virtualenv
+venv/
+.venv/
+env/

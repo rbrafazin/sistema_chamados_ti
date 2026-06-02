@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load inventario_tags %}
+{% block title %}Equipamento {{ equipamento.patrimonio }} - ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">{{ equipamento.patrimonio }}</h1>
+        <p class="page-subtitle">{{ equipamento.marca }} {{ equipamento.modelo }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'inventario_edit' equipamento.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'inventario_delete' equipamento.pk %}" class="btn btn-outline-danger btn-sm" data-confirm="Excluir este equipamento?"><i class="bi bi-trash"></i> Excluir</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="content-card mb-3">
+            <div class="card-header">Informações do Equipamento</div>
+            <div class="card-body info-grid">
+                <div class="info-item"><span class="info-label">Patrimônio</span><span class="info-value">{{ equipamento.patrimonio }}</span></div>
+                <div class="info-item"><span class="info-label">Categoria</span><span class="info-value"><i class="bi {{ equipamento.categoria|icone_categoria }} me-1"></i>{{ equipamento.get_categoria_display }}</span></div>
+                <div class="info-item"><span class="info-label">Status</span><span class="info-value">{{ equipamento.get_status_display }}</span></div>
+                <div class="info-item"><span class="info-label">Marca</span><span class="info-value">{{ equipamento.marca }}</span></div>
+                <div class="info-item"><span class="info-label">Modelo</span><span class="info-value">{{ equipamento.modelo }}</span></div>
+                <div class="info-item"><span class="info-label">Nº Série</span><span class="info-value">{{ equipamento.numero_serie|default:'—' }}</span></div>
+
+                <div class="info-divider">Especificações Técnicas</div>
+
+                <div class="info-item info-wide"><span class="info-label">Processador</span><span class="info-value">{{ equipamento.processador|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Memória RAM</span><span class="info-value">{{ equipamento.memoria_ram|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Armazenamento</span><span class="info-value">{{ equipamento.armazenamento|default:'—' }}</span></div>
+
+                <div class="info-divider">Rede e Localização</div>
+
+                <div class="info-item"><span class="info-label">Sistema Operacional</span><span class="info-value">{{ equipamento.sistema_operacional|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Endereço IP</span><span class="info-value">{{ equipamento.ip|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">MAC Address</span><span class="info-value">{{ equipamento.mac_address|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Hostname</span><span class="info-value">{{ equipamento.hostname|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Localização</span><span class="info-value">{{ equipamento.localizacao }}</span></div>
+                <div class="info-item"><span class="info-label">Responsável</span><span class="info-value">{{ equipamento.responsavel|default:'—' }}</span></div>
+
+                {% if equipamento.observacoes %}
+                <div class="info-divider">Observações</div>
+                <div class="info-item info-full"><span class="info-value">{{ equipamento.observacoes|linebreaks }}</span></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i> Histórico</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for h in historico %}
+                    <div class="list-group-item">
+                        <strong class="small">{{ h.acao }}</strong>
+                        <small class="text-muted d-block">{{ h.criado_em|date:"d/m/Y H:i" }}</small>
+                        {% if h.descricao %}<small class="text-muted">{{ h.descricao }}</small>{% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Sem histórico</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
