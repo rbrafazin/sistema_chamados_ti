@@ -6,9 +6,9 @@ from .forms import TarefaForm
 
 @login_required
 def tarefas_kanban(request):
-    a_fazer = Tarefa.objects.filter(status='a_fazer').order_by('-criado_em')[:50]
-    andamento = Tarefa.objects.filter(status='andamento').order_by('-criado_em')[:50]
-    concluido = Tarefa.objects.filter(status='concluido').order_by('-atualizado_em')[:20]
+    a_fazer = Tarefa.objects.filter(status='a_fazer').select_related('criado_por', 'responsavel').order_by('-criado_em')[:50]
+    andamento = Tarefa.objects.filter(status='andamento').select_related('criado_por', 'responsavel').order_by('-criado_em')[:50]
+    concluido = Tarefa.objects.filter(status='concluido').select_related('criado_por', 'responsavel').order_by('-atualizado_em')[:20]
     form = TarefaForm()
     return render(request, 'tarefas/kanban.html', {
         'a_fazer': a_fazer, 'andamento': andamento, 'concluido': concluido, 'form': form,

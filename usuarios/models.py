@@ -5,18 +5,14 @@ from django.dispatch import receiver
 
 class Perfil(models.Model):
     CARGO_CHOICES = [
-        ('tecnico', 'Técnico'),
-        ('analista', 'Analista'),
-        ('coordenador', 'Coordenador'),
-        ('gerente', 'Gerente'),
-        ('admin', 'Administrador'),
+        ('ti', 'TI'),
+        ('usuario', 'Usuário'),
     ]
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
-    cargo = models.CharField('Cargo', max_length=20, choices=CARGO_CHOICES, default='tecnico')
+    cargo = models.CharField('Cargo', max_length=20, choices=CARGO_CHOICES, default='usuario')
     telefone = models.CharField('Ramal', max_length=20, blank=True)
     setor = models.CharField('Setor', max_length=100, default='TI')
-    tema = models.CharField('Tema', max_length=10, choices=[('light', 'Claro'), ('dark', 'Escuro')], default='light')
     avatar = models.ImageField('Avatar', upload_to='usuarios/avatares/', blank=True, null=True)
 
     class Meta:

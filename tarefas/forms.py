@@ -17,4 +17,5 @@ class TarefaForm(forms.ModelForm):
             existing = field.widget.attrs.get('class', '')
             field.widget.attrs['class'] = f'{css} {existing}'.strip()
         self.fields['responsavel'].required = False
+        self.fields['responsavel'].empty_label = 'Selecionar...'
         self.fields['prazo'].required = False

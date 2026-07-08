@@ -14,15 +14,25 @@ class Chamado(models.Model):
         ('andamento', 'Em Andamento'),
         ('resolvido', 'Resolvido'),
     ]
+    CATEGORIA_CHOICES = [
+        ('hardware', 'Hardware'),
+        ('software', 'Software'),
+        ('rede', 'Rede'),
+        ('email', 'E-mail'),
+        ('impressora', 'Impressora'),
+        ('outro', 'Outro'),
+    ]
 
     titulo = models.CharField('Título', max_length=200)
     descricao = models.TextField('Descrição')
     solicitante = models.CharField('Solicitante', max_length=150)
     setor = models.CharField('Setor', max_length=100)
+    categoria = models.CharField('Categoria', max_length=20, choices=CATEGORIA_CHOICES, default='outro')
     prioridade = models.CharField('Prioridade', max_length=10, choices=PRIORIDADE_CHOICES, default='media')
     status = models.CharField('Status', max_length=15, choices=STATUS_CHOICES, default='aberto')
     tecnico = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Técnico Responsável', related_name='chamados_atribuidos')
     observacoes = models.TextField('Observações Técnicas', blank=True)
+    imagem_tecnica = models.ImageField('Imagem Técnica', upload_to='chamados/tecnicas/', blank=True, null=True)
     criado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='chamados_criados', verbose_name='Criado por')
     criado_em = models.DateTimeField('Criado em', auto_now_add=True)
     atualizado_em = models.DateTimeField('Atualizado em', auto_now=True)

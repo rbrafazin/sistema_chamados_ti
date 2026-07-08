@@ -9,7 +9,7 @@
 
 <div class="content-card">
     <div class="card-body">
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="row">
                 <div class="col-md-8 mb-3">{{ form.titulo|as_crispy_field }}</div>
@@ -18,11 +18,13 @@
             <div class="mb-3">{{ form.descricao|as_crispy_field }}</div>
             <div class="row">
                 <div class="col-md-4 mb-3">{{ form.solicitante|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.prioridade|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.status|as_crispy_field }}</div>
+                <div class="col-md-2 mb-3">{{ form.categoria|as_crispy_field }}</div>
+                <div class="col-md-2 mb-3">{{ form.prioridade|as_crispy_field }}</div>
+                <div class="col-md-2 mb-3">{{ form.status|as_crispy_field }}</div>
                 <div class="col-md-2 mb-3">{{ form.tecnico|as_crispy_field }}</div>
             </div>
             <div class="mb-3">{{ form.observacoes|as_crispy_field }}</div>
+            {{ form.imagem_tecnica|as_crispy_field }}
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
                 <a href="{% url 'chamados_list' %}" class="btn btn-outline-secondary">Cancelar</a>

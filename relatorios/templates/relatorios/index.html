@@ -1,9 +1,17 @@
 {% extends 'base.html' %}
 {% block title %}Relatórios - ABM TI{% endblock %}
 {% block content %}
-<div class="mb-3">
-    <h1 class="page-title">Relatórios</h1>
-    <p class="page-subtitle">Indicadores e métricas do setor de TI</p>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="page-title">Relatórios</h1>
+        <p class="page-subtitle">Indicadores e métricas do setor de TI</p>
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-center">
+        {{ filter_form.mes }}
+        {{ filter_form.ano }}
+        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="{% url 'enviar_relatorio' %}?mes={{ request.GET.mes }}&ano={{ request.GET.ano }}" class="btn btn-outline-primary btn-sm" title="Enviar relatório por e-mail">Enviar PDF</a>
+    </form>
 </div>
 
 <div class="row mb-4">
@@ -30,14 +38,14 @@
 <div class="row">
     <div class="col-lg-6 mb-4">
         <div class="content-card">
-            <div class="card-header">Chamados por Status</div>
-            <div class="card-body"><canvas id="chartStatus" height="260"></canvas></div>
+            <div class="card-header">Chamados por Categoria</div>
+            <div class="card-body"><canvas id="chartCategoriaChamado" height="260"></canvas></div>
         </div>
     </div>
     <div class="col-lg-6 mb-4">
         <div class="content-card">
-            <div class="card-header">Chamados por Prioridade</div>
-            <div class="card-body"><canvas id="chartPrioridade" height="260"></canvas></div>
+            <div class="card-header">Top Solicitantes</div>
+            <div class="card-body"><canvas id="chartSolicitantes" height="260"></canvas></div>
         </div>
     </div>
     <div class="col-lg-6 mb-4">
@@ -53,42 +61,62 @@
         </div>
     </div>
 </div>
+
+<div class="content-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Chamados de {{ mes_ano }} ({{ chamados_lista|length }})</span>
+    </div>
+    <div class="table-responsive relatorio-tabela">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>#</th><th>Título</th><th>Solicitante</th><th>Categoria</th><th>Prioridade</th><th>Status</th><th>Técnico</th><th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in chamados_lista %}
+                <tr>
+                    <td><strong>#{{ c.pk }}</strong></td>
+                    <td><a href="{% url 'chamados_detail' c.pk %}" class="text-decoration-none">{{ c.titulo|truncatechars:40 }}</a></td>
+                    <td>{{ c.solicitante|truncatechars:20 }}</td>
+                    <td>{{ c.get_categoria_display }}</td>
+                    <td><span class="badge badge-prioridade-{{ c.prioridade }}">{{ c.get_prioridade_display }}</span></td>
+                    <td><span class="badge badge-status-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                    <td>{{ c.tecnico.get_full_name|default:'—' }}</td>
+                    <td class="text-muted small">{{ c.criado_em|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4">Nenhum chamado neste mês</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const colors = ['#0d6efd','#ffc107','#198754','#dc3545','#6f42c1','#fd7e14'];
-    const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } };
+    const colors = ['#0f62fe','#b85c00','#0e6027','#da1e28','#8b5cf6','#0891b2'];
+    const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 45 } }, y: { ticks: { stepSize: 1, beginAtZero: true } } } };
 
-    new Chart(document.getElementById('chartStatus'), {
-        type: 'doughnut',
-        data: { labels: {{ labels_status|safe }}, datasets: [{ data: {{ data_status|safe }}, backgroundColor: colors }] },
-        options: chartOptions
+    new Chart(document.getElementById('chartCategoriaChamado'), {
+        type: 'bar', data: { labels: {{ labels_categoria_chamado|safe }}, datasets: [{ data: {{ data_categoria_chamado|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
     });
-
-    new Chart(document.getElementById('chartPrioridade'), {
-        type: 'bar',
-        data: { labels: {{ labels_prioridade|safe }}, datasets: [{ label: 'Chamados', data: {{ data_prioridade|safe }}, backgroundColor: ['#198754','#0d6efd','#ffc107','#dc3545'] }] },
-        options: chartOptions
+    new Chart(document.getElementById('chartSolicitantes'), {
+        type: 'bar', data: { labels: {{ labels_solicitantes|safe }}, datasets: [{ data: {{ data_solicitantes|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
     });
-
     new Chart(document.getElementById('chartCategoria'), {
-        type: 'pie',
-        data: { labels: {{ labels_categoria|safe }}, datasets: [{ data: {{ data_categoria|safe }}, backgroundColor: colors }] },
-        options: chartOptions
+        type: 'bar', data: { labels: {{ labels_categoria_equip|safe }}, datasets: [{ data: {{ data_categoria_equip|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
     });
-
     new Chart(document.getElementById('chartMensal'), {
-        type: 'line',
-        data: {
+        type: 'line', data: {
             labels: {{ labels_mes|safe }},
             datasets: [
-                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', tension: 0.3, fill: true },
-                { label: 'Tarefas Concluídas', data: {{ tarefas_mes|safe }}, borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)', tension: 0.3, fill: true }
+                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#0f62fe', backgroundColor: 'rgba(15,98,254,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#0f62fe' },
+                { label: 'Tarefas', data: {{ tarefas_mes|safe }}, borderColor: '#0e6027', backgroundColor: 'rgba(14,96,39,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#0e6027' }
             ]
-        },
-        options: chartOptions
+        }, options: chartOptions
     });
 });
 </script>

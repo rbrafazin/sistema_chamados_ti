@@ -17,6 +17,8 @@ def chamado_list(request):
             chamados = chamados.filter(status=data['status'])
         if data.get('prioridade'):
             chamados = chamados.filter(prioridade=data['prioridade'])
+        if data.get('categoria'):
+            chamados = chamados.filter(categoria=data['categoria'])
         if data.get('busca'):
             q = data['busca']
             chamados = chamados.filter(
@@ -35,7 +37,7 @@ def chamado_list(request):
 @login_required
 def chamado_create(request):
     if request.method == 'POST':
-        form = ChamadoForm(request.POST)
+        form = ChamadoForm(request.POST, request.FILES)
         if form.is_valid():
             chamado = form.save(commit=False)
             chamado.criado_por = request.user
@@ -60,7 +62,7 @@ def chamado_detail(request, pk):
 def chamado_edit(request, pk):
     chamado = get_object_or_404(Chamado, pk=pk)
     if request.method == 'POST':
-        form = ChamadoForm(request.POST, instance=chamado)
+        form = ChamadoForm(request.POST, request.FILES, instance=chamado)
         if form.is_valid():
             old_status = chamado.status
             new_chamado = form.save()

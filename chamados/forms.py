@@ -4,7 +4,7 @@ from .models import Chamado
 class ChamadoForm(forms.ModelForm):
     class Meta:
         model = Chamado
-        fields = ['titulo', 'descricao', 'solicitante', 'setor', 'prioridade', 'status', 'tecnico', 'observacoes']
+        fields = ['titulo', 'descricao', 'solicitante', 'setor', 'categoria', 'prioridade', 'status', 'tecnico', 'observacoes', 'imagem_tecnica']
         widgets = {
             'descricao': forms.Textarea(attrs={'rows': 4, 'class': 'auto-resize'}),
             'observacoes': forms.Textarea(attrs={'rows': 3, 'class': 'auto-resize'}),
@@ -17,12 +17,14 @@ class ChamadoForm(forms.ModelForm):
             existing = field.widget.attrs.get('class', '')
             field.widget.attrs['class'] = f'{css} {existing}'.strip()
         self.fields['tecnico'].required = False
+        self.fields['tecnico'].empty_label = 'Selecionar...'
 
 
 class ChamadoFilterForm(forms.Form):
     status = forms.ChoiceField(choices=[('', 'Todos')] + Chamado.STATUS_CHOICES, required=False, label='Status')
     prioridade = forms.ChoiceField(choices=[('', 'Todas')] + Chamado.PRIORIDADE_CHOICES, required=False, label='Prioridade')
-    busca = forms.CharField(required=False, label='Buscar', widget=forms.TextInput(attrs={'placeholder': 'Pesquisar...'}))
+    categoria = forms.ChoiceField(choices=[('', 'Todas')] + Chamado.CATEGORIA_CHOICES, required=False, label='Categoria')
+    busca = forms.CharField(required=False, label='', initial='', widget=forms.TextInput(attrs={'placeholder': 'Pesquisar...'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

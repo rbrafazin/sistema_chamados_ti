@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'calendario',
     'relatorios',
     'usuarios',
+    'portal',
 ]
 
 MIDDLEWARE = [
@@ -36,6 +37,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.StaffRequiredMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -108,6 +110,7 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 NOTIFICACAO_EMAIL = config('NOTIFICACAO_EMAIL', default='ti@empresa.com.br')
+RELATORIO_EMAIL = config('RELATORIO_EMAIL', default='relatorios@abmti.com.br')
 
 # Seguranca
 if not DEBUG:

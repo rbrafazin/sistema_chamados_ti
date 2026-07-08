@@ -1,0 +1,24 @@
+{% extends 'portal/base.html' %}
+{% block title %}Chamado #{{ chamado.pk }} — Portal{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <h2 class="mb-0">#{{ chamado.pk }} — {{ chamado.titulo }}</h2>
+        <span class="badge-{{ chamado.status }}">{{ chamado.get_status_display }}</span>
+    </div>
+    <div style="font-size:13px;color:#8b949e;margin-bottom:16px;">
+        {{ chamado.criado_em|date:"d/m/Y H:i" }} &middot; {{ chamado.get_categoria_display }} &middot; {{ chamado.get_prioridade_display }}
+    </div>
+    <p style="color:#c9d1d9;font-size:14px;white-space:pre-wrap;">{{ chamado.descricao }}</p>
+    {% if chamado.observacoes %}
+    <div style="margin-top:16px;padding:16px;background:#0d1117;border-radius:8px;border:1px solid #30363d;">
+        <strong style="font-size:13px;color:#8b949e;">Resposta do Técnico</strong>
+        <p style="color:#c9d1d9;font-size:13px;margin-top:8px;white-space:pre-wrap;">{{ chamado.observacoes }}</p>
+        {% if chamado.imagem_tecnica %}
+        <img src="{{ chamado.imagem_tecnica.url }}" alt="Imagem" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;">
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+<a href="{% url 'portal_index' %}" class="btn-outline">&larr; Voltar</a>
+{% endblock %}

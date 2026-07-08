@@ -11,14 +11,8 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="{% if user.is_authenticated and user.perfil.tema == 'dark' %}dark{% endif %}{% if request.COOKIES.sidebar == '1' %} sidebar-collapsed{% endif %}">
-    <script>
-        var d=document.body.classList;
-        {% if not user.is_authenticated %}
-        if(localStorage.getItem('theme')==='dark')d.add('dark');
-        {% endif %}
-        if(localStorage.getItem('sidebar-collapsed')==='true'&&window.innerWidth>992)d.add('sidebar-collapsed');
-    </script>
+<body class="dark{% if request.COOKIES.sidebar == '1' %} sidebar-collapsed{% endif %}">
+    <script>var d=document.body.classList;if(localStorage.getItem('sidebar-collapsed')==='true'&&window.innerWidth>992)d.add('sidebar-collapsed')</script>
     <div class="wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -61,9 +55,6 @@
                 </a>
                 {% endif %}
             </nav>
-            <div class="sidebar-footer">
-                v1.0 &copy; {% now "Y" %}
-            </div>
         </aside>
 
         <!-- Main -->
@@ -72,9 +63,6 @@
             <nav class="navbar-top">
                 <img src="{% static 'img/Logo_ABM_colorida.png' %}" alt="ABM TI" class="navbar-logo">
                 <div class="navbar-actions">
-                    <button class="btn-icon theme-toggle" title="Alternar tema">
-                        <i class="bi bi-moon-stars"></i>
-                    </button>
                     <div class="dropdown">
                         <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                             {% with f=user.first_name|first|upper l=user.last_name|first|upper %}

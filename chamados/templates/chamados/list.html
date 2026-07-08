@@ -16,6 +16,7 @@
         <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
             <div class="me-2">{{ filter_form.status }}</div>
             <div class="me-2">{{ filter_form.prioridade }}</div>
+            <div class="me-2">{{ filter_form.categoria }}</div>
             <div class="me-2 flex-grow-1" style="max-width:300px;">{{ filter_form.busca }}</div>
             <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
             <a href="{% url 'chamados_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>

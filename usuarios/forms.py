@@ -57,6 +57,7 @@ class UsuarioForm(forms.ModelForm):
                 css = 'form-control'
                 existing = field.widget.attrs.get('class', '')
                 field.widget.attrs['class'] = f'{css} {existing}'.strip()
+        self.fields['username'].help_text = ''
         if self.instance and self.instance.pk:
             self.fields['password'].required = False
         else:

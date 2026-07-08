@@ -40,7 +40,7 @@
     <div class="col-lg-9">
         <form method="get" class="mb-3">
             <div class="input-group">
-                <input type="text" name="busca" class="form-control" placeholder="Pesquisar artigos..." value="{{ busca }}">
+                <input type="text" name="busca" class="form-control" placeholder="Pesquisar..." value="{{ busca|default:'' }}">
                 <button class="btn btn-primary"><i class="bi bi-search"></i></button>
             </div>
         </form>

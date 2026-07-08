@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from datetime import date
 from chamados.models import Chamado
 from inventario.models import Equipamento
@@ -26,3 +27,21 @@ def index(request):
         'tarefas_pendentes_list': tarefas_pendentes_list,
     }
     return render(request, 'dashboard/index.html', context)
+
+
+@login_required
+def dashboard_stats(request):
+    recentes = Chamado.objects.select_related('criado_por').order_by('-criado_em')[:5]
+    return JsonResponse({
+        'chamados_abertos': Chamado.objects.filter(status='aberto').count(),
+        'chamados_criticos': Chamado.objects.filter(prioridade='critica', status__in=['aberto', 'andamento']).count(),
+        'equipamentos_ativos': Equipamento.objects.filter(status='ativo').count(),
+        'eventos_hoje': Evento.objects.filter(data_inicio__date=date.today()).count(),
+        'recentes': [
+            {'pk': c.pk, 'titulo': c.titulo, 'solicitante': c.solicitante,
+             'prioridade': c.get_prioridade_display(), 'prioridade_class': c.prioridade,
+             'status': c.get_status_display(), 'status_class': c.status,
+             'data': c.criado_em.strftime('%d/%m/%Y %H:%M')}
+            for c in recentes
+        ],
+    })

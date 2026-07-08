@@ -34,11 +34,15 @@
                         <small class="text-muted d-block">Setor</small>
                         <strong>{{ chamado.setor }}</strong>
                     </div>
-                    <div class="col-md-4 mb-2">
+                    <div class="col-md-3 mb-2">
+                        <small class="text-muted d-block">Categoria</small>
+                        <strong>{{ chamado.get_categoria_display }}</strong>
+                    </div>
+                    <div class="col-md-3 mb-2">
                         <small class="text-muted d-block">Prioridade</small>
                         <span class="badge badge-prioridade-{{ chamado.prioridade }}">{{ chamado.get_prioridade_display }}</span>
                     </div>
-                    <div class="col-md-4 mb-2">
+                    <div class="col-md-3 mb-2">
                         <small class="text-muted d-block">Status</small>
                         <span class="badge badge-status-{{ chamado.status }}">{{ chamado.get_status_display }}</span>
                     </div>
@@ -53,6 +57,12 @@
                 {% if chamado.observacoes %}
                 <h6 class="fw-bold">Observações Técnicas</h6>
                 <div class="p-3 bg-light rounded">{{ chamado.observacoes|linebreaks }}</div>
+                {% endif %}
+                {% if chamado.imagem_tecnica %}
+                <h6 class="fw-bold mt-3">Imagem Técnica</h6>
+                <a href="{{ chamado.imagem_tecnica.url }}" target="_blank">
+                    <img src="{{ chamado.imagem_tecnica.url }}" alt="Imagem técnica" class="img-fluid rounded" style="max-height:300px;">
+                </a>
                 {% endif %}
             </div>
         </div>

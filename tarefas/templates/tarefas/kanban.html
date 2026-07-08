@@ -23,7 +23,7 @@
             <div class="kanban-meta">
                 <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
                 {% if tarefa.prazo %}<span class="ms-1"><i class="bi bi-calendar3"></i> {{ tarefa.prazo|date:"d/m" }}</span>{% endif %}
-                {% if tarefa.responsavel %}<span class="ms-1" title="{{ tarefa.responsavel.get_full_name }}"><i class="bi bi-person"></i></span>{% endif %}
+                {% if tarefa.responsavel %}<span class="ms-1"><i class="bi bi-person"></i> {{ tarefa.responsavel.get_full_name|default:tarefa.responsavel.username }}</span>{% endif %}
             </div>
             <div class="mt-2 d-flex gap-1">
                 <form method="post" action="{% url 'tarefa_update_status' tarefa.pk %}" class="d-inline">
@@ -53,6 +53,7 @@
             <div class="kanban-meta">
                 <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
                 {% if tarefa.prazo %}<span class="ms-1"><i class="bi bi-calendar3"></i> {{ tarefa.prazo|date:"d/m" }}</span>{% endif %}
+                {% if tarefa.responsavel %}<span class="ms-1"><i class="bi bi-person"></i> {{ tarefa.responsavel.get_full_name|default:tarefa.responsavel.username }}</span>{% endif %}
             </div>
             <div class="mt-2 d-flex gap-1">
                 <form method="post" action="{% url 'tarefa_update_status' tarefa.pk %}" class="d-inline">
@@ -80,7 +81,9 @@
         <div class="kanban-item" style="opacity:0.75;">
             <div class="kanban-title text-decoration-line-through">{{ tarefa.titulo }}</div>
             <div class="kanban-meta">
+                <span class="badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
                 <small class="text-muted"><i class="bi bi-calendar-check"></i> {{ tarefa.atualizado_em|date:"d/m" }}</small>
+                {% if tarefa.responsavel %}<span class="ms-1"><i class="bi bi-person"></i> {{ tarefa.responsavel.get_full_name|default:tarefa.responsavel.username }}</span>{% endif %}
             </div>
             <div class="mt-2">
                 <form method="post" action="{% url 'tarefa_delete' tarefa.pk %}" class="d-inline" onsubmit="return confirm('Excluir esta tarefa?')">

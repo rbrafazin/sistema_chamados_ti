@@ -1,10 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    function getCookie(name) {
-        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-        return v ? v[2] : '';
-    }
-
     // Sidebar toggle
     const menuToggle = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -24,22 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         window.addEventListener('resize', () => {
             if (!isMobile()) sidebar.classList.remove('open');
-        });
-    }
-
-    // Dark mode toggle
-    const themeToggle = document.querySelector('.theme-toggle');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark');
-            var isDark = document.body.classList.contains('dark');
-            var tema = isDark ? 'dark' : 'light';
-            localStorage.setItem('theme', tema);
-            fetch('/usuarios/tema/', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken')},
-                body: 'tema=' + tema
-            });
         });
     }
 

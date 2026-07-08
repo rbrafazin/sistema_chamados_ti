@@ -17,7 +17,7 @@
         <a href="{% url 'chamados_list' %}?status=aberto" class="text-decoration-none">
             <div class="stat-card animate-in">
                 <div class="card-icon blue"><i class="bi bi-ticket-perforated"></i></div>
-                <div class="card-info"><h3>{{ chamados_abertos }}</h3><p>Chamados Abertos</p></div>
+                <div class="card-info"><h3 id="num-abertos">{{ chamados_abertos }}</h3><p>Chamados Abertos</p></div>
             </div>
         </a>
     </div>
@@ -25,7 +25,7 @@
         <a href="{% url 'chamados_list' %}?prioridade=critica" class="text-decoration-none">
             <div class="stat-card animate-in">
                 <div class="card-icon red"><i class="bi bi-exclamation-triangle"></i></div>
-                <div class="card-info"><h3>{{ chamados_criticos }}</h3><p>Críticos</p></div>
+                <div class="card-info"><h3 id="num-criticos">{{ chamados_criticos }}</h3><p>Críticos</p></div>
             </div>
         </a>
     </div>
@@ -33,7 +33,7 @@
         <a href="{% url 'inventario_list' %}?status=ativo" class="text-decoration-none">
             <div class="stat-card animate-in">
                 <div class="card-icon green"><i class="bi bi-pc-display"></i></div>
-                <div class="card-info"><h3>{{ equipamentos_ativos }}</h3><p>Equipamentos Ativos</p></div>
+                <div class="card-info"><h3 id="num-ativos">{{ equipamentos_ativos }}</h3><p>Equipamentos Ativos</p></div>
             </div>
         </a>
     </div>
@@ -41,7 +41,7 @@
         <a href="{% url 'calendario_index' %}" class="text-decoration-none">
             <div class="stat-card animate-in">
                 <div class="card-icon orange"><i class="bi bi-calendar3"></i></div>
-                <div class="card-info"><h3>{{ eventos_hoje }}</h3><p>Eventos Hoje</p></div>
+                <div class="card-info"><h3 id="num-eventos">{{ eventos_hoje }}</h3><p>Eventos Hoje</p></div>
             </div>
         </a>
     </div>
@@ -56,7 +56,7 @@
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover" id="data-table">
                         <thead>
                             <tr>
                                 <th>Título</th><th>Solicitante</th><th>Data</th><th>Prioridade</th><th>Status</th>
@@ -105,4 +105,35 @@
         </div>
     </div>
 </div>
+
+<div id="dashboard-toast" class="position-fixed bottom-0 end-0 p-3" style="z-index:9999;"></div>
+
+<script>
+var _ultimoTotal = {{ chamados_abertos }};
+function _atualizarDashboard() {
+    fetch('{% url "dashboard_stats" %}').then(function(r){return r.json()}).then(function(d){
+        document.getElementById('num-abertos').textContent = d.chamados_abertos;
+        document.getElementById('num-criticos').textContent = d.chamados_criticos;
+        document.getElementById('num-ativos').textContent = d.equipamentos_ativos;
+        document.getElementById('num-eventos').textContent = d.eventos_hoje;
+        if(d.chamados_abertos > _ultimoTotal && _ultimoTotal > 0) {
+            var dif = d.chamados_abertos - _ultimoTotal;
+            var toast = document.createElement('div');
+            toast.className = 'toast show align-items-center text-bg-primary border-0';
+            toast.setAttribute('role','alert');
+            toast.innerHTML = '<div class="d-flex"><div class="toast-body"><i class="bi bi-bell me-2"></i>'+dif+' novo(s) chamado(s)</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+            document.getElementById('dashboard-toast').appendChild(toast);
+            setTimeout(function(){ toast.remove(); }, 6000);
+        }
+        _ultimoTotal = d.chamados_abertos;
+        var tbody = document.querySelector('#data-table tbody');
+        if(tbody && d.recentes) {
+            tbody.innerHTML = d.recentes.map(function(c){
+                return '<tr><td><a href="/chamados/'+c.pk+'/" class="text-decoration-none fw-medium">'+c.titulo+'</a></td><td>'+c.solicitante+'</td><td class="text-muted small">'+c.data+'</td><td><span class="badge badge-prioridade-'+c.prioridade_class+'">'+c.prioridade+'</span></td><td><span class="badge badge-status-'+c.status_class+'">'+c.status+'</span></td></tr>';
+            }).join('');
+        }
+    });
+}
+setInterval(_atualizarDashboard, 15000);
+</script>
 {% endblock %}

@@ -18,6 +18,7 @@ class ArtigoForm(forms.ModelForm):
                 field.widget.attrs['class'] = f'{css} {existing}'.strip()
         self.fields['conteudo'].widget.attrs['rows'] = 12
         self.fields['categoria'].required = False
+        self.fields['categoria'].empty_label = 'Selecionar...'
         if self.instance and self.instance.pk:
             self.fields['tags_input'].initial = ', '.join(t.nome for t in self.instance.tags.all())
 

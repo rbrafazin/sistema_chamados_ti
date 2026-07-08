@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.http import JsonResponse
 from django.contrib.auth.models import User
 from .models import Perfil
 from .forms import PerfilForm, UsuarioForm
@@ -65,17 +64,6 @@ def perfil_edit(request):
     else:
         form = PerfilForm(instance=perfil)
     return render(request, 'usuarios/perfil_form.html', {'form': form})
-
-
-@login_required
-def atualizar_tema(request):
-    if request.method == 'POST':
-        tema = request.POST.get('tema', 'light')
-        if tema in ('light', 'dark'):
-            request.user.perfil.tema = tema
-            request.user.perfil.save(update_fields=['tema'])
-            return JsonResponse({'ok': True})
-    return JsonResponse({'ok': False})
 
 
 @login_required
