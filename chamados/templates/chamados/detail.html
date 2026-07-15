@@ -6,18 +6,21 @@
         <h1 class="page-title">Chamado #{{ chamado.pk }}</h1>
         <p class="page-subtitle">{{ chamado.titulo }}</p>
     </div>
+    {% if chamado.status != 'resolvido' %}
     <div class="d-flex gap-2">
         <form method="post" action="{% url 'chamados_update_status' chamado.pk %}" class="d-flex gap-2">
             {% csrf_token %}
-            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="status" class="form-select form-select-sm" onchange="if(this.value==='resolvido'){if(!confirm('Finalizar este chamado? Esta ação não poderá ser desfeita.')){this.value='{{ chamado.status }}';return false;}}this.form.submit()">
                 {% for val, label in chamado.STATUS_CHOICES %}
                 <option value="{{ val }}" {% if chamado.status == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </form>
         <a href="{% url 'chamados_edit' chamado.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
-        <a href="{% url 'chamados_delete' chamado.pk %}" class="btn btn-outline-danger btn-sm" data-confirm="Excluir este chamado?"><i class="bi bi-trash"></i> Excluir</a>
     </div>
+    {% else %}
+    <span class="badge bg-success p-2 fs-6"><i class="bi bi-check-circle me-1"></i> Finalizado em {{ chamado.atualizado_em|date:"d/m/Y H:i" }}</span>
+    {% endif %}
 </div>
 
 <div class="row">
@@ -32,7 +35,7 @@
                     </div>
                     <div class="col-md-6 mb-2">
                         <small class="text-muted d-block">Setor</small>
-                        <strong>{{ chamado.setor }}</strong>
+                        <strong>{{ chamado.get_setor_display }}</strong>
                     </div>
                     <div class="col-md-3 mb-2">
                         <small class="text-muted d-block">Categoria</small>
@@ -54,6 +57,12 @@
                 <hr>
                 <h6 class="fw-bold">Descrição</h6>
                 <p class="mb-3">{{ chamado.descricao|linebreaks }}</p>
+                {% if chamado.imagem_solicitante %}
+                <h6 class="fw-bold mt-3">Imagem do Solicitante</h6>
+                <a href="{{ chamado.imagem_solicitante.url }}" target="_blank">
+                    <img src="{{ chamado.imagem_solicitante.url }}" alt="Imagem do solicitante" class="img-fluid rounded" style="max-height:300px;">
+                </a>
+                {% endif %}
                 {% if chamado.observacoes %}
                 <h6 class="fw-bold">Observações Técnicas</h6>
                 <div class="p-3 bg-light rounded">{{ chamado.observacoes|linebreaks }}</div>

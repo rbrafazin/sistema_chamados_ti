@@ -13,10 +13,20 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def usuarios_list(request):
     usuarios = User.objects.select_related('perfil').all().order_by('first_name')
+    setor = request.GET.get('setor')
+
+    if setor:
+        usuarios = usuarios.filter(perfil__setor=setor)
+
     paginator = Paginator(usuarios, 20)
     page = request.GET.get('page')
     usuarios_page = paginator.get_page(page)
-    return render(request, 'usuarios/list.html', {'usuarios': usuarios_page})
+
+    return render(request, 'usuarios/list.html', {
+        'usuarios': usuarios_page,
+        'setores': Perfil.SETOR_CHOICES,
+        'current_setor': setor,
+    })
 
 @login_required
 @user_passes_test(is_admin)

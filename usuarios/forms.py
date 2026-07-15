@@ -38,7 +38,7 @@ class UsuarioForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), label='Senha', required=False)
     cargo = forms.ChoiceField(choices=Perfil.CARGO_CHOICES, label='Cargo')
     telefone = forms.CharField(max_length=20, required=False, label='Ramal')
-    setor = forms.CharField(max_length=100, initial='TI', label='Setor')
+    setor = forms.ChoiceField(choices=Perfil.SETOR_CHOICES, initial='ti', label='Setor')
 
     class Meta:
         model = User
@@ -76,8 +76,8 @@ class UsuarioForm(forms.ModelForm):
             user.save()
             if hasattr(user, 'perfil'):
                 perfil = user.perfil
-                perfil.cargo = self.cleaned_data.get('cargo', 'tecnico')
+                perfil.cargo = self.cleaned_data.get('cargo', 'usuario')
                 perfil.telefone = self.cleaned_data.get('telefone', '')
-                perfil.setor = self.cleaned_data.get('setor', 'TI')
+                perfil.setor = self.cleaned_data.get('setor', 'ti')
                 perfil.save()
         return user

@@ -11,6 +11,7 @@ PRIORIDADE_CORES = {
     'alta': '#b85c00',
     'critica': '#da1e28',
 }
+COR_PRIORIDADE = {v: k for k, v in PRIORIDADE_CORES.items()}
 
 @login_required
 def calendario_index(request):
@@ -30,7 +31,9 @@ def eventos_json(request):
             'allDay': e.dia_todo,
             'extendedProps': {
                 'descricao': e.descricao,
-                'tipo': e.get_tipo_display(),
+                'tipo': e.tipo,
+                'tipo_display': e.get_tipo_display(),
+                'prioridade': COR_PRIORIDADE.get(e.cor, 'media'),
             }
         })
     return JsonResponse(data, safe=False)
@@ -44,7 +47,6 @@ def evento_create(request):
             evento.criado_por = request.user
             prioridade = request.POST.get('prioridade', 'media')
             evento.cor = PRIORIDADE_CORES.get(prioridade, '#0f62fe')
-            evento.dia_todo = True
             evento.save()
             messages.success(request, 'Evento criado!')
         else:

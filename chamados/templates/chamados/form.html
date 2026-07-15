@@ -9,7 +9,7 @@
 
 <div class="content-card">
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="form-chamado">
             {% csrf_token %}
             <div class="row">
                 <div class="col-md-8 mb-3">{{ form.titulo|as_crispy_field }}</div>
@@ -25,6 +25,7 @@
             </div>
             <div class="mb-3">{{ form.observacoes|as_crispy_field }}</div>
             {{ form.imagem_tecnica|as_crispy_field }}
+            {{ form.imagem_solicitante|as_crispy_field }}
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
                 <a href="{% url 'chamados_list' %}" class="btn btn-outline-secondary">Cancelar</a>
@@ -32,4 +33,38 @@
         </form>
     </div>
 </div>
+<script>
+document.querySelector('#form-chamado').addEventListener('submit', function(e) {
+    var sel = document.querySelector('select[name="status"]');
+    if (sel && sel.value === 'resolvido') {
+        if (!confirm('Finalizar este chamado? Esta ação não poderá ser desfeita.')) {
+            e.preventDefault();
+        }
+    }
+});
+</script>
+{% if usuarios_json %}
+<script>
+var _usuarios = {{ usuarios_json|safe }};
+var selSetor = document.querySelector('select[name="setor"]');
+var selSolic = document.querySelector('select[name="solicitante"]');
+
+function _filtrar() {
+    var setor = selSetor.value;
+    if (!setor) {
+        selSolic.innerHTML = '<option value="">Primeiro escolha o setor...</option>';
+        return;
+    }
+    selSolic.innerHTML = '<option value="">Selecionar...</option>';
+    (_usuarios[setor] || []).forEach(function(u) {
+        var opt = document.createElement('option');
+        opt.value = u.value;
+        opt.textContent = u.name;
+        selSolic.appendChild(opt);
+    });
+}
+
+selSetor.addEventListener('change', _filtrar);
+</script>
+{% endif %}
 {% endblock %}

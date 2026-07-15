@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Tarefa
 from .forms import TarefaForm
@@ -34,6 +35,7 @@ def tarefa_create(request):
     return redirect('tarefas_kanban')
 
 @login_required
+@require_POST
 def tarefa_update_status(request, pk):
     tarefa = get_object_or_404(Tarefa, pk=pk)
     if request.method == 'POST':
@@ -52,7 +54,7 @@ def tarefa_delete(request, pk):
             messages.success(request, 'Tarefa excluída!')
         except Exception:
             messages.error(request, 'Erro ao excluir a tarefa.')
-        return redirect('tarefas_kanban')
+    return redirect('tarefas_kanban')
 
 @login_required
 def tarefa_edit(request, pk):

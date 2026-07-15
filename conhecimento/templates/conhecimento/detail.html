@@ -10,13 +10,6 @@
             &middot; <i class="bi bi-eye me-1"></i> {{ artigo.visualizacoes }} visualizações
             {% if artigo.categoria %}&middot; <span class="badge bg-secondary">{{ artigo.categoria.nome }}</span>{% endif %}
         </p>
-        {% if artigo.tags.all %}
-        <div class="mt-2">
-            {% for tag in artigo.tags.all %}
-            <span class="badge bg-light text-dark me-1"><i class="bi bi-tag me-1"></i>{{ tag.nome }}</span>
-            {% endfor %}
-        </div>
-        {% endif %}
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'conhecimento_edit' artigo.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>

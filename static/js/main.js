@@ -1,27 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Sidebar toggle
-    const menuToggle = document.querySelector('.menu-toggle');
-    const sidebar = document.querySelector('.sidebar');
-    if (menuToggle && sidebar) {
-        function isMobile() { return window.innerWidth <= 992; }
-
-        menuToggle.addEventListener('click', () => {
-            if (isMobile()) {
-                sidebar.classList.toggle('open');
-            } else {
-                document.body.classList.toggle('sidebar-collapsed');
-                var collapsed = document.body.classList.contains('sidebar-collapsed');
-                localStorage.setItem('sidebar-collapsed', collapsed ? 'true' : 'false');
-                document.cookie = 'sidebar=' + (collapsed ? '1' : '0') + '; path=/; max-age=31536000; SameSite=Lax';
-            }
-        });
-
-        window.addEventListener('resize', () => {
-            if (!isMobile()) sidebar.classList.remove('open');
-        });
-    }
-
     // Auto-dismiss alerts
     document.querySelectorAll('.alert-dismissible').forEach(alert => {
         setTimeout(() => {
@@ -61,6 +39,30 @@ document.addEventListener('DOMContentLoaded', function() {
         textarea.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
+        });
+    });
+
+    // Sidebar collapsible sections (persisted)
+    var _sbKey = 'sidebar_collapsed';
+    var _sbState = {};
+    try { _sbState = JSON.parse(localStorage.getItem(_sbKey) || '{}'); } catch(e) {}
+
+    document.querySelectorAll('.nav-section[data-toggle="nav-group"]').forEach(function(s) {
+        var group = s.nextElementSibling;
+        var gid = group ? group.getAttribute('data-group') : null;
+
+        if (gid && _sbState[gid]) {
+            s.classList.add('collapsed');
+            group.classList.add('collapsed');
+        }
+
+        s.addEventListener('click', function() {
+            this.classList.toggle('collapsed');
+            if (group) group.classList.toggle('collapsed');
+            if (gid) {
+                _sbState[gid] = group.classList.contains('collapsed');
+                localStorage.setItem(_sbKey, JSON.stringify(_sbState));
+            }
         });
     });
 

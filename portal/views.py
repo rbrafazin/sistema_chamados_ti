@@ -9,13 +9,15 @@ from .forms import PortalChamadoForm
 @login_required
 def portal_index(request):
     if request.method == 'POST':
-        form = PortalChamadoForm(request.POST)
+        form = PortalChamadoForm(request.POST, request.FILES)
         if form.is_valid():
             chamado = form.save(commit=False)
             chamado.solicitante = request.user.get_full_name() or request.user.username
             chamado.setor = request.user.perfil.setor
             chamado.status = 'aberto'
             chamado.criado_por = request.user
+            if form.cleaned_data.get('imagem'):
+                chamado.imagem_solicitante = form.cleaned_data['imagem']
             chamado.save()
             messages.success(request, 'Chamado enviado com sucesso! Nossa equipe de TI vai analisar.')
             return redirect('portal_index')
@@ -24,10 +26,12 @@ def portal_index(request):
     else:
         form = PortalChamadoForm()
 
-    meus_chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:20]
+    meus_chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:10]
+    total_chamados = Chamado.objects.filter(criado_por=request.user).count()
     return render(request, 'portal/index.html', {
         'form': form,
         'meus_chamados': meus_chamados,
+        'total_chamados': total_chamados,
     })
 
 
@@ -39,7 +43,7 @@ def portal_detail(request, pk):
 
 @login_required
 def portal_stats(request):
-    chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:20]
+    chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:10]
     return JsonResponse({
         'chamados': [
             {'pk': c.pk, 'titulo': c.titulo, 'categoria': c.get_categoria_display(),
@@ -47,5 +51,5 @@ def portal_stats(request):
              'data': c.criado_em.strftime('%d/%m/%Y %H:%M')}
             for c in chamados
         ],
-        'total': len(chamados),
+        'total': Chamado.objects.filter(criado_por=request.user).count(),
     })

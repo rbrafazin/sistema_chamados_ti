@@ -13,6 +13,6 @@ class StaffRequiredMiddleware:
     def __call__(self, request):
         if request.user.is_authenticated and not request.user.is_staff:
             path = request.path
-            if any(path.startswith(p) for p in self.SISTEMA_PATHS):
+            if request.path == '/' or any(path.startswith(p) for p in self.SISTEMA_PATHS):
                 return redirect('portal_index')
         return self.get_response(request)

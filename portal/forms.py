@@ -3,14 +3,19 @@ from chamados.models import Chamado
 
 
 class PortalChamadoForm(forms.ModelForm):
+    imagem = forms.ImageField(label='Anexar imagem', required=False)
+
     class Meta:
         model = Chamado
-        fields = ['titulo', 'descricao', 'categoria', 'prioridade']
+        fields = ['titulo', 'descricao']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            css = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
-            existing = field.widget.attrs.get('class', '')
-            field.widget.attrs['class'] = f'{css} {existing}'.strip()
+        for field_name, field in self.fields.items():
+            if field_name == 'imagem':
+                field.widget.attrs['class'] = 'form-control'
+            elif isinstance(field.widget, forms.Select):
+                field.widget.attrs['class'] = 'form-select'
+            else:
+                field.widget.attrs['class'] = 'form-control'
         self.fields['descricao'].widget.attrs['rows'] = 4

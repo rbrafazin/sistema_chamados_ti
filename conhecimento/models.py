@@ -17,23 +17,10 @@ class Categoria(models.Model):
         return self.nome
 
 
-class Tag(models.Model):
-    nome = models.CharField('Nome', max_length=50, unique=True)
-
-    class Meta:
-        ordering = ['nome']
-        verbose_name = 'Tag'
-        verbose_name_plural = 'Tags'
-
-    def __str__(self):
-        return self.nome
-
-
 class Artigo(models.Model):
     titulo = models.CharField('Título', max_length=200)
     conteudo = models.TextField('Conteúdo')
     categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, blank=True, related_name='artigos')
-    tags = models.ManyToManyField(Tag, blank=True, related_name='artigos', verbose_name='Tags')
     autor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='artigos')
     anexo = models.FileField('Anexo', upload_to='conhecimento/anexos/', blank=True, null=True)
     visualizacoes = models.PositiveIntegerField('Visualizações', default=0)
@@ -41,7 +28,7 @@ class Artigo(models.Model):
     atualizado_em = models.DateTimeField('Atualizado em', auto_now=True)
 
     class Meta:
-        ordering = ['-atualizado_em']
+        ordering = ['-visualizacoes', '-atualizado_em']
         verbose_name = 'Artigo'
         verbose_name_plural = 'Artigos'
 

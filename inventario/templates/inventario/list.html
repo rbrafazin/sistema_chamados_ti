@@ -13,14 +13,20 @@
 <div class="content-card">
     <div class="card-header">
         <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
-            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="document.getElementsByName('busca')[0].value=''; this.form.submit()">
-                <option value="">Todas Categorias</option>
+            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Categoria...</option>
                 {% for val, label in categorias %}
                 <option value="{{ val }}" {% if current_categoria == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
-            <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="document.getElementsByName('busca')[0].value=''; this.form.submit()">
-                <option value="">Todos Status</option>
+            <select name="setor" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Setor...</option>
+                {% for val, label in setores %}
+                <option value="{{ val }}" {% if current_setor == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Status...</option>
                 {% for val, label in status_list %}
                 <option value="{{ val }}" {% if current_status == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
@@ -38,7 +44,7 @@
                         <th>Patrimônio</th>
                         <th>Categoria</th>
                         <th>Marca/Modelo</th>
-                        <th>Localização</th>
+                        <th>Setor</th>
                         <th>Responsável</th>
                         <th>Status</th>
                         <th>Ações</th>
@@ -50,13 +56,13 @@
                         <td><strong>{{ eq.patrimonio }}</strong></td>
                         <td><i class="bi {{ eq.categoria|icone_categoria }} me-1"></i>{{ eq.get_categoria_display }}</td>
                         <td>{{ eq.marca }} {{ eq.modelo }}</td>
-                        <td>{{ eq.localizacao }}</td>
-                        <td>{{ eq.responsavel|default:'—' }}</td>
+                        <td>{{ eq.get_setor_display }}</td>
+                        <td>{{ eq.responsavel.get_full_name|default:'—' }}</td>
                         <td>
-                            {% if eq.status == 'ativo' %}<span class="badge bg-success">Ativo</span>
-                            {% elif eq.status == 'manutencao' %}<span class="badge" style="background:#f59e0b;color:#fff;">Em Manutenção</span>
-                            {% elif eq.status == 'inativo' %}<span class="badge bg-secondary">Inativo</span>
-                            {% else %}<span class="badge bg-dark">Descartado</span>{% endif %}
+                            {% if eq.status == 'ativo' %}<span class="badge badge-status-ativo">Ativo</span>
+                            {% elif eq.status == 'manutencao' %}<span class="badge badge-status-manutencao">Em Manutenção</span>
+                            {% elif eq.status == 'inativo' %}<span class="badge badge-status-inativo">Inativo</span>
+                            {% else %}<span class="badge badge-status-descartado">Descartado</span>{% endif %}
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">

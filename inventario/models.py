@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.urls import reverse
 
 class Equipamento(models.Model):
@@ -18,6 +19,23 @@ class Equipamento(models.Model):
         ('descartado', 'Descartado'),
     ]
 
+    SETOR_CHOICES = [
+        ('apoio', 'APOIO'),
+        ('atendimento', 'ATENDIMENTO'),
+        ('comunicacao', 'COMUNICAÇÃO'),
+        ('consorcio', 'CONSÓRCIO'),
+        ('convenios', 'CONVÊNIOS'),
+        ('educacao_permanente', 'EDUCAÇÃO PERMANENTE'),
+        ('gerencia', 'GERÊNCIA'),
+        ('iness', 'INESS'),
+        ('nac', 'NAC'),
+        ('rh', 'RH'),
+        ('secretaria', 'SECRETARIA'),
+        ('sinam', 'SINAM'),
+        ('ti', 'T.I'),
+        ('tesouraria', 'TESOURARIA'),
+    ]
+
     patrimonio = models.CharField('Patrimônio', max_length=50, unique=True)
     hostname = models.CharField('Hostname', max_length=100, blank=True)
     categoria = models.CharField('Categoria', max_length=20, choices=CATEGORIA_CHOICES, default='computador')
@@ -30,10 +48,11 @@ class Equipamento(models.Model):
     sistema_operacional = models.CharField('Sistema Operacional', max_length=100, blank=True)
     ip = models.GenericIPAddressField('Endereço IP', blank=True, null=True)
     mac_address = models.CharField('MAC Address', max_length=50, blank=True)
-    localizacao = models.CharField('Localização', max_length=200)
-    responsavel = models.CharField('Responsável', max_length=150, blank=True)
+    setor = models.CharField('Setor', max_length=200, choices=SETOR_CHOICES, default='ti', blank=True)
+    responsavel = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Responsável')
     status = models.CharField('Status', max_length=15, choices=STATUS_CHOICES, default='ativo')
     observacoes = models.TextField('Observações', blank=True)
+    imagem = models.ImageField('Imagem', upload_to='inventario/', blank=True, null=True)
     criado_em = models.DateTimeField('Criado em', auto_now_add=True)
     atualizado_em = models.DateTimeField('Atualizado em', auto_now=True)
 

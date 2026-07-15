@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=Chamado)
 def notificar_novo_chamado(sender, instance, created, **kwargs):
     if created:
-        url = reverse('chamados_detail', args=[instance.pk])
+        url = f"{settings.SITE_URL}{reverse('chamados_detail', args=[instance.pk])}"
         assunto = f'[ABM TI] Novo Chamado #{instance.pk} - {instance.titulo}'
         mensagem = f"""
 Novo chamado registrado no sistema ABM TI.

@@ -110,6 +110,7 @@
 
 <script>
 var _ultimoTotal = {{ chamados_abertos }};
+function _esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function _atualizarDashboard() {
     fetch('{% url "dashboard_stats" %}').then(function(r){return r.json()}).then(function(d){
         document.getElementById('num-abertos').textContent = d.chamados_abertos;
@@ -129,7 +130,7 @@ function _atualizarDashboard() {
         var tbody = document.querySelector('#data-table tbody');
         if(tbody && d.recentes) {
             tbody.innerHTML = d.recentes.map(function(c){
-                return '<tr><td><a href="/chamados/'+c.pk+'/" class="text-decoration-none fw-medium">'+c.titulo+'</a></td><td>'+c.solicitante+'</td><td class="text-muted small">'+c.data+'</td><td><span class="badge badge-prioridade-'+c.prioridade_class+'">'+c.prioridade+'</span></td><td><span class="badge badge-status-'+c.status_class+'">'+c.status+'</span></td></tr>';
+                return '<tr><td><a href="/chamados/'+c.pk+'/" class="text-decoration-none fw-medium">'+_esc(c.titulo)+'</a></td><td>'+_esc(c.solicitante)+'</td><td class="text-muted small">'+c.data+'</td><td><span class="badge badge-prioridade-'+c.prioridade_class+'">'+c.prioridade+'</span></td><td><span class="badge badge-status-'+c.status_class+'">'+c.status+'</span></td></tr>';
             }).join('');
         }
     });

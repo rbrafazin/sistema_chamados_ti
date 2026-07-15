@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from core.utils import usuarios_por_setor_json
 from .models import Chamado, HistoricoChamado
 from .forms import ChamadoForm, ChamadoFilterForm
 
@@ -50,7 +52,7 @@ def chamado_create(request):
             return redirect('chamados_list')
     else:
         form = ChamadoForm()
-    return render(request, 'chamados/form.html', {'form': form, 'action': 'Novo Chamado'})
+    return render(request, 'chamados/form.html', {'form': form, 'action': 'Novo Chamado', 'usuarios_json': usuarios_por_setor_json()})
 
 @login_required
 def chamado_detail(request, pk):
@@ -61,16 +63,19 @@ def chamado_detail(request, pk):
 @login_required
 def chamado_edit(request, pk):
     chamado = get_object_or_404(Chamado, pk=pk)
+    if chamado.status == 'resolvido':
+        messages.error(request, 'Chamado finalizado não pode ser alterado.')
+        return redirect('chamados_detail', pk=chamado.pk)
     if request.method == 'POST':
         form = ChamadoForm(request.POST, request.FILES, instance=chamado)
         if form.is_valid():
-            old_status = chamado.status
-            new_chamado = form.save()
-            if old_status != new_chamado.status:
+            old_display = chamado.get_status_display()
+            form.save()
+            if old_display != chamado.get_status_display():
                 HistoricoChamado.objects.create(
                     chamado=chamado, usuario=request.user,
                     acao='Status alterado',
-                    descricao=f'Status alterado de "{chamado.get_status_display()}" para "{new_chamado.get_status_display()}"'
+                    descricao=f'Status alterado de "{old_display}" para "{chamado.get_status_display()}"'
                 )
             messages.success(request, 'Chamado atualizado com sucesso!')
             return redirect('chamados_detail', pk=chamado.pk)
@@ -79,20 +84,12 @@ def chamado_edit(request, pk):
     return render(request, 'chamados/form.html', {'form': form, 'action': 'Editar Chamado', 'chamado': chamado})
 
 @login_required
-def chamado_delete(request, pk):
-    chamado = get_object_or_404(Chamado, pk=pk)
-    if request.method == 'POST':
-        try:
-            chamado.delete()
-            messages.success(request, 'Chamado excluído!')
-        except Exception:
-            messages.error(request, 'Erro ao excluir. O registro pode estar vinculado a outros dados.')
-        return redirect('chamados_list')
-    return render(request, 'chamados/confirm_delete.html', {'chamado': chamado})
-
-@login_required
+@require_POST
 def chamado_update_status(request, pk):
     chamado = get_object_or_404(Chamado, pk=pk)
+    if chamado.status == 'resolvido':
+        messages.error(request, 'Chamado finalizado não pode ter o status alterado.')
+        return redirect('chamados_detail', pk=chamado.pk)
     if request.method == 'POST':
         new_status = request.POST.get('status')
         if new_status in dict(Chamado.STATUS_CHOICES):

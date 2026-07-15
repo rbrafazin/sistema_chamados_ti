@@ -1,5 +1,6 @@
 from django import forms
 from datetime import datetime
+from inventario.models import Equipamento
 
 
 class MesAnoFilterForm(forms.Form):
@@ -15,6 +16,7 @@ class MesAnoFilterForm(forms.Form):
         choices=[(y, str(y)) for y in range(2024, hoje.year + 2)],
         initial=hoje.year, label='', required=False
     )
+    setor = forms.ChoiceField(choices=[('', 'Setor...')] + Equipamento.SETOR_CHOICES, label='', required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

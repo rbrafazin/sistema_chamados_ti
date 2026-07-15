@@ -1,14 +1,16 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.db.models import Count
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from datetime import datetime, timedelta
+from datetime import datetime
 import calendar
-import json
+import csv
+import logging
 import requests
 from weasyprint import HTML
 from chamados.models import Chamado
@@ -17,29 +19,54 @@ from tarefas.models import Tarefa
 from .forms import MesAnoFilterForm
 
 
-def _gerar_dados(mes, ano):
+def _gerar_dados(mes, ano, setor=None):
     hoje = datetime.now()
     mes_inicio = datetime(ano, mes, 1).date()
     _, last_day = calendar.monthrange(ano, mes)
     mes_fim = datetime(ano, mes, last_day).date()
 
     chamados_mes = Chamado.objects.filter(criado_em__date__gte=mes_inicio, criado_em__date__lte=mes_fim)
+    if setor:
+        chamados_mes = chamados_mes.filter(setor=setor)
     total_chamados = chamados_mes.count()
     chamados_resolvidos = chamados_mes.filter(status='resolvido').count()
     taxa_resolucao = round((chamados_resolvidos / total_chamados * 100) if total_chamados > 0 else 0, 1)
 
+    # Comparação com mês anterior
+    prev_mes_num = mes - 1 if mes > 1 else 12
+    prev_ano_num = ano - 1 if mes == 1 else ano
+    prev_inicio = datetime(prev_ano_num, prev_mes_num, 1).date()
+    _, prev_last_day = calendar.monthrange(prev_ano_num, prev_mes_num)
+    prev_fim = datetime(prev_ano_num, prev_mes_num, prev_last_day).date()
+    prev_chamados = Chamado.objects.filter(criado_em__date__gte=prev_inicio, criado_em__date__lte=prev_fim)
+    prev_total = prev_chamados.count()
+    prev_resolvidos = prev_chamados.filter(status='resolvido').count()
+    prev_taxa = round((prev_resolvidos / prev_total * 100) if prev_total > 0 else 0, 1)
+
+    meses_full = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+    mes_anterior_nome = meses_full[prev_mes_num - 1]
+
+    variacao_total = round(((total_chamados - prev_total) / prev_total * 100) if prev_total > 0 else 0, 1)
+    variacao_resolvidos = round(((chamados_resolvidos - prev_resolvidos) / prev_resolvidos * 100) if prev_resolvidos > 0 else 0, 1)
+    variacao_taxa = round(taxa_resolucao - prev_taxa, 1)
+
     chamados_categoria = chamados_mes.values('categoria').annotate(total=Count('id'))
     top_solicitantes = chamados_mes.values('solicitante').annotate(total=Count('id')).order_by('-total')[:8]
-    equipamentos_categoria = Equipamento.objects.values('categoria').annotate(total=Count('id'))
+    equipamentos_qs = Equipamento.objects.all()
+    if setor:
+        equipamentos_qs = equipamentos_qs.filter(setor=setor)
+    equipamentos_categoria = equipamentos_qs.values('categoria').annotate(total=Count('id'))
+    equipamentos_status = equipamentos_qs.values('status').annotate(total=Count('id'))
 
     chamados_mes_list = []
     tarefas_mes_list = []
     labels_mes_list = []
 
     for i in range(5, -1, -1):
-        mi = (hoje.replace(day=1) - timedelta(days=i * 30)).replace(day=1)
+        ano_mes = hoje.year * 12 + hoje.month - 1 - i
+        mi = datetime(ano_mes // 12, ano_mes % 12 + 1, 1)
         _, ld = calendar.monthrange(mi.year, mi.month)
-        mf = mi.replace(day=ld)
+        mf = datetime(mi.year, mi.month, ld)
         meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
         labels_mes_list.append(f'{meses[mi.month - 1]}/{mi.year}')
         chamados_mes_list.append(Chamado.objects.filter(criado_em__date__gte=mi, criado_em__date__lte=mf).count())
@@ -63,6 +90,13 @@ def _gerar_dados(mes, ano):
         'total_chamados': total_chamados,
         'chamados_resolvidos': chamados_resolvidos,
         'taxa_resolucao': taxa_resolucao,
+        'mes_anterior_nome': mes_anterior_nome,
+        'variacao_total': variacao_total,
+        'variacao_resolvidos': variacao_resolvidos,
+        'variacao_taxa': variacao_taxa,
+        'prev_total': prev_total,
+        'prev_resolvidos': prev_resolvidos,
+        'prev_taxa': prev_taxa,
         'labels_categoria_chamado': labels_categoria_chamado,
         'data_categoria_chamado': data_categoria_chamado,
         'labels_solicitantes': labels_solicitantes,
@@ -74,6 +108,11 @@ def _gerar_dados(mes, ano):
         'tarefas_mes': tarefas_mes_list,
         'chamados_lista': chamados_lista,
         'cores': cores,
+        'equip_ativos': sum(e['total'] for e in equipamentos_status if e['status'] == 'ativo'),
+        'equip_manutencao': sum(e['total'] for e in equipamentos_status if e['status'] == 'manutencao'),
+        'equip_inativo': sum(e['total'] for e in equipamentos_status if e['status'] == 'inativo'),
+        'equip_descartado': sum(e['total'] for e in equipamentos_status if e['status'] == 'descartado'),
+        'equip_total': equipamentos_qs.count(),
     }
 
 
@@ -83,30 +122,42 @@ def _chart_url(config):
         if r.status_code == 200:
             return r.json().get('url', '')
     except Exception:
-        pass
+        logging.getLogger('chamados').exception('Erro ao gerar grafico via QuickChart')
     return ''
 
 
 @login_required
 def relatorios_index(request):
     hoje = datetime.now()
-    mes = int(request.GET.get('mes', hoje.month))
-    ano = int(request.GET.get('ano', hoje.year))
+    try:
+        mes = int(request.GET.get('mes', hoje.month))
+        ano = int(request.GET.get('ano', hoje.year))
+    except (ValueError, TypeError):
+        mes = hoje.month
+        ano = hoje.year
+    setor = request.GET.get('setor', '')
 
-    dados = _gerar_dados(mes, ano)
-    filter_form = MesAnoFilterForm(initial={'mes': mes, 'ano': ano})
+    dados = _gerar_dados(mes, ano, setor or None)
+    filter_form = MesAnoFilterForm(initial={'mes': mes, 'ano': ano, 'setor': setor})
 
     dados['filter_form'] = filter_form
+    dados['current_setor'] = setor
     return render(request, 'relatorios/index.html', dados)
 
 
 @login_required
+@require_POST
 def enviar_relatorio(request):
     hoje = datetime.now()
-    mes = int(request.GET.get('mes', hoje.month))
-    ano = int(request.GET.get('ano', hoje.year))
+    try:
+        mes = int(request.POST.get('mes', hoje.month))
+        ano = int(request.POST.get('ano', hoje.year))
+    except (ValueError, TypeError):
+        mes = hoje.month
+        ano = hoje.year
+    setor = request.POST.get('setor', '')
 
-    dados = _gerar_dados(mes, ano)
+    dados = _gerar_dados(mes, ano, setor or None)
     cores = dados.pop('cores')
 
     # Gerar URLs das imagens dos gráficos via QuickChart
@@ -154,3 +205,36 @@ def enviar_relatorio(request):
     email.send(fail_silently=False)
     messages.success(request, f'Relatório {dados["mes_ano"]} enviado com sucesso!')
     return redirect(f'{request.path_info}?mes={mes}&ano={ano}')
+
+
+@login_required
+def exportar_csv(request):
+    hoje = datetime.now()
+    meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+             'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
+    try:
+        mes = int(request.GET.get('mes', hoje.month))
+        ano = int(request.GET.get('ano', hoje.year))
+    except (ValueError, TypeError):
+        mes = hoje.month
+        ano = hoje.year
+    setor = request.GET.get('setor', '')
+
+    dados = _gerar_dados(mes, ano, setor or None)
+    chamados = dados['chamados_lista']
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="chamados_{meses[mes-1].lower()}_{ano}.csv"'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['#', 'Título', 'Solicitante', 'Setor', 'Categoria', 'Prioridade', 'Status', 'Técnico', 'Data'])
+    for c in chamados:
+        writer.writerow([
+            c.pk, c.titulo, c.solicitante, c.get_setor_display(),
+            c.get_categoria_display(), c.get_prioridade_display(),
+            c.get_status_display(), c.tecnico.get_full_name() if c.tecnico else '—',
+            c.criado_em.strftime('%d/%m/%Y %H:%M'),
+        ])
+
+    return response

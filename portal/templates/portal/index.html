@@ -3,7 +3,7 @@
 {% block content %}
 <div class="card">
     <h2>Abrir Chamado</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="mb-3">
             <label class="form-label">Título</label>
@@ -13,23 +13,17 @@
             <label class="form-label">Descrição</label>
             {{ form.descricao }}
         </div>
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">Categoria</label>
-                {{ form.categoria }}
-            </div>
-            <div class="col-md-6">
-                <label class="form-label">Prioridade</label>
-                {{ form.prioridade }}
-            </div>
+        <div class="mb-3">
+            <label class="form-label">Anexar imagem</label>
+            {{ form.imagem }}
         </div>
         <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Enviar Chamado</button>
     </form>
 </div>
 
 <div class="card">
-    <h2>Meus Chamados (<span id="portal-total">{{ meus_chamados|length }}</span>)</h2>
-    <div id="portal-lista">
+    <h2>Meus Chamados (<span id="portal-total">{{ total_chamados }}</span>)</h2>
+    <div id="portal-lista" style="max-height:480px;overflow-y:auto;">
     {% for c in meus_chamados %}
     <div class="chamado-item">
         <div>
@@ -45,11 +39,12 @@
 </div>
 
 <script>
+function _esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function _atualizarPortal() {
     fetch('{% url "portal_stats" %}').then(function(r){return r.json()}).then(function(d){
         document.getElementById('portal-total').textContent = d.total;
         var html = d.chamados.map(function(c){
-            return '<div class="chamado-item"><div><a href="/portal/'+c.pk+'/" class="text-decoration-none" style="color:#c9d1d9;">'+c.titulo+'</a><div style="font-size:11px;color:#8b949e;">'+c.data+' &middot; '+c.categoria+'</div></div><span class="badge-'+c.status_class+'">'+c.status+'</span></div>';
+            return '<div class="chamado-item"><div><a href="/portal/'+c.pk+'/" class="text-decoration-none" style="color:#c9d1d9;">'+_esc(c.titulo)+'</a><div style="font-size:11px;color:#8b949e;">'+c.data+' &middot; '+c.categoria+'</div></div><span class="badge-'+c.status_class+'">'+c.status+'</span></div>';
         }).join('') || '<p style="color:#8b949e;font-size:13px;text-align:center;padding:20px 0;">Nenhum chamado encontrado.</p>';
         document.getElementById('portal-lista').innerHTML = html;
     });

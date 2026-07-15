@@ -11,10 +11,7 @@
         <form method="post">
             {% csrf_token %}
             {{ form.titulo|as_crispy_field }}
-            <div class="row">
-                <div class="col-md-8 mb-3">{{ form.categoria|as_crispy_field }}</div>
-                <div class="col-md-4 mb-3">{{ form.tags_input|as_crispy_field }}</div>
-            </div>
+            {{ form.categoria|as_crispy_field }}
             {{ form.conteudo|as_crispy_field }}
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>

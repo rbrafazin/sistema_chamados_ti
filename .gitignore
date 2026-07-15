@@ -16,6 +16,9 @@ build/
 /media/
 db.sqlite3
 
+# Logs
+logs/
+
 # Docker
 postgres_data/
 

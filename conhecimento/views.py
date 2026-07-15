@@ -8,7 +8,7 @@ from .forms import ArtigoForm, CategoriaForm
 
 @login_required
 def conhecimento_list(request):
-    artigos = Artigo.objects.select_related('categoria', 'autor').prefetch_related('tags').all()
+    artigos = Artigo.objects.select_related('categoria', 'autor').all()
     categorias = Categoria.objects.annotate(total_artigos=Count('artigos')).all()
     busca = request.GET.get('busca')
     categoria_id = request.GET.get('categoria')

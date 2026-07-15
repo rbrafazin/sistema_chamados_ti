@@ -11,18 +11,16 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="dark{% if request.COOKIES.sidebar == '1' %} sidebar-collapsed{% endif %}">
-    <script>var d=document.body.classList;if(localStorage.getItem('sidebar-collapsed')==='true'&&window.innerWidth>992)d.add('sidebar-collapsed')</script>
+<body class="dark">
     <div class="wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <button class="menu-toggle" title="Menu">
-                    <i class="bi bi-list"></i>
-                </button>
+                <img src="{% static 'img/Logo_ABM_colorida.png' %}" alt="ABM TI" class="logo-img">
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-section">Principal</div>
+                <div class="nav-section" data-toggle="nav-group">Principal <i class="bi bi-chevron-down ms-auto"></i></div>
+                <div class="nav-group" data-group="principal">
                 <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
                 </a>
@@ -36,8 +34,10 @@
                 <a href="{% url 'conhecimento_list' %}" class="{% if 'conhecimento' in request.path %}active{% endif %}">
                     <i class="bi bi-journal-bookmark-fill"></i> <span>Base de Conhecimento</span>
                 </a>
+                </div>
 
-                <div class="nav-section">Ferramentas</div>
+                <div class="nav-section" data-toggle="nav-group">Ferramentas <i class="bi bi-chevron-down ms-auto"></i></div>
+                <div class="nav-group" data-group="ferramentas">
                 <a href="{% url 'tarefas_kanban' %}" class="{% if 'tarefas' in request.path %}active{% endif %}">
                     <i class="bi bi-kanban"></i> <span>Tarefas</span>
                 </a>
@@ -47,12 +47,15 @@
                 <a href="{% url 'relatorios_index' %}" class="{% if 'relatorios' in request.path %}active{% endif %}">
                     <i class="bi bi-bar-chart-line"></i> <span>Relatórios</span>
                 </a>
+                </div>
 
                 {% if user.is_staff %}
-                <div class="nav-section">Administração</div>
+                <div class="nav-section" data-toggle="nav-group">Administração <i class="bi bi-chevron-down ms-auto"></i></div>
+                <div class="nav-group" data-group="administracao">
                 <a href="{% url 'usuarios_list' %}" class="{% if 'usuarios' in request.path %}active{% endif %}">
                     <i class="bi bi-people"></i> <span>Usuários</span>
                 </a>
+                </div>
                 {% endif %}
             </nav>
         </aside>
@@ -61,8 +64,7 @@
         <main class="main-content">
             <!-- Navbar -->
             <nav class="navbar-top">
-                <img src="{% static 'img/Logo_ABM_colorida.png' %}" alt="ABM TI" class="navbar-logo">
-                <div class="navbar-actions">
+                <div class="navbar-actions" style="margin-left: auto;">
                     <div class="dropdown">
                         <div class="user-menu" data-bs-toggle="dropdown" aria-expanded="false">
                             {% with f=user.first_name|first|upper l=user.last_name|first|upper %}
@@ -75,8 +77,6 @@
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><span class="dropdown-item-text text-muted small">{{ user.username }}</span></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'password_change' %}"><i class="bi bi-key me-2"></i>Alterar Senha</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="{% url 'logout' %}">

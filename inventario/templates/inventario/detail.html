@@ -37,9 +37,17 @@
                 <div class="info-item"><span class="info-label">Endereço IP</span><span class="info-value">{{ equipamento.ip|default:'—' }}</span></div>
                 <div class="info-item"><span class="info-label">MAC Address</span><span class="info-value">{{ equipamento.mac_address|default:'—' }}</span></div>
                 <div class="info-item"><span class="info-label">Hostname</span><span class="info-value">{{ equipamento.hostname|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">Localização</span><span class="info-value">{{ equipamento.localizacao }}</span></div>
-                <div class="info-item"><span class="info-label">Responsável</span><span class="info-value">{{ equipamento.responsavel|default:'—' }}</span></div>
+                <div class="info-item"><span class="info-label">Setor</span><span class="info-value">{{ equipamento.get_setor_display }}</span></div>
+                <div class="info-item"><span class="info-label">Responsável</span><span class="info-value">{{ equipamento.responsavel.get_full_name|default:'—' }}</span></div>
 
+                {% if equipamento.imagem %}
+                <div class="info-divider">Imagem</div>
+                <div class="info-item info-full">
+                    <a href="{{ equipamento.imagem.url }}" target="_blank">
+                        <img src="{{ equipamento.imagem.url }}" alt="Imagem" class="img-fluid rounded" style="max-height:400px;">
+                    </a>
+                </div>
+                {% endif %}
                 {% if equipamento.observacoes %}
                 <div class="info-divider">Observações</div>
                 <div class="info-item info-full"><span class="info-value">{{ equipamento.observacoes|linebreaks }}</span></div>

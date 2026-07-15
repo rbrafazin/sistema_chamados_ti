@@ -31,7 +31,7 @@ def index(request):
 
 @login_required
 def dashboard_stats(request):
-    recentes = Chamado.objects.select_related('criado_por').order_by('-criado_em')[:5]
+    recentes = Chamado.objects.select_related('criado_por').order_by('-criado_em')[:10]
     return JsonResponse({
         'chamados_abertos': Chamado.objects.filter(status='aberto').count(),
         'chamados_criticos': Chamado.objects.filter(prioridade='critica', status__in=['aberto', 'andamento']).count(),

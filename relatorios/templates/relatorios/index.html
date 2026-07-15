@@ -6,58 +6,84 @@
         <h1 class="page-title">Relatórios</h1>
         <p class="page-subtitle">Indicadores e métricas do setor de TI</p>
     </div>
-    <form method="get" class="d-flex gap-2 align-items-center">
-        {{ filter_form.mes }}
-        {{ filter_form.ano }}
-        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
-        <a href="{% url 'enviar_relatorio' %}?mes={{ request.GET.mes }}&ano={{ request.GET.ano }}" class="btn btn-outline-primary btn-sm" title="Enviar relatório por e-mail">Enviar PDF</a>
-    </form>
+    <div class="d-flex gap-2">
+        <form method="get" class="d-flex gap-2 align-items-center">
+            {{ filter_form.mes }}
+            {{ filter_form.ano }}
+            {{ filter_form.setor }}
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+        </form>
+        <div class="d-flex align-items-center">
+            <a href="{% url 'exportar_csv' %}?mes={{ request.GET.mes }}&ano={{ request.GET.ano }}&setor={{ request.GET.setor }}" class="btn btn-outline-primary btn-sm" title="Baixar CSV"><i class="bi bi-download me-1"></i>CSV</a>
+        </div>
+        <div class="d-flex align-items-center">
+            <form method="post" action="{% url 'enviar_relatorio' %}" class="d-flex">
+                {% csrf_token %}
+                <input type="hidden" name="mes" value="{{ request.GET.mes }}">
+                <input type="hidden" name="ano" value="{{ request.GET.ano }}">
+                <input type="hidden" name="setor" value="{{ request.GET.setor }}">
+                <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
+        <div class="stat-card h-100">
             <div class="card-icon blue"><i class="bi bi-ticket-perforated"></i></div>
-            <div class="card-info"><h3>{{ total_chamados }}</h3><p>Total de Chamados</p></div>
+            <div class="card-info">
+                <h3>{{ total_chamados }}</h3>
+                <p>Total de Chamados</p>
+            </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
+        <div class="stat-card h-100">
             <div class="card-icon green"><i class="bi bi-check-circle"></i></div>
-            <div class="card-info"><h3>{{ chamados_resolvidos }}</h3><p>Chamados Resolvidos</p></div>
+            <div class="card-info">
+                <h3>{{ chamados_resolvidos }}</h3>
+                <p>Chamados Resolvidos</p>
+            </div>
         </div>
     </div>
     <div class="col-md-4 mb-3">
-        <div class="stat-card">
+        <div class="stat-card h-100">
             <div class="card-icon orange"><i class="bi bi-graph-up"></i></div>
-            <div class="card-info"><h3>{{ taxa_resolucao }}%</h3><p>Taxa de Resolução</p></div>
+            <div class="card-info">
+                <h3>{{ taxa_resolucao }}%</h3>
+                <p>Taxa de Resolução</p>
+            </div>
         </div>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-lg-6 mb-4">
+    <div class="col-12 mb-4">
+        <div class="content-card">
+            <div class="card-header">Produtividade Mensal (6 meses)</div>
+            <div class="card-body"><canvas id="chartMensal" height="120"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4 mb-4">
         <div class="content-card">
             <div class="card-header">Chamados por Categoria</div>
-            <div class="card-body"><canvas id="chartCategoriaChamado" height="260"></canvas></div>
+            <div class="card-body"><canvas id="chartCategoriaChamado" height="200"></canvas></div>
         </div>
     </div>
-    <div class="col-lg-6 mb-4">
+    <div class="col-lg-4 mb-4">
         <div class="content-card">
             <div class="card-header">Top Solicitantes</div>
-            <div class="card-body"><canvas id="chartSolicitantes" height="260"></canvas></div>
+            <div class="card-body"><canvas id="chartSolicitantes" height="200"></canvas></div>
         </div>
     </div>
-    <div class="col-lg-6 mb-4">
+    <div class="col-lg-4 mb-4">
         <div class="content-card">
             <div class="card-header">Equipamentos por Categoria</div>
-            <div class="card-body"><canvas id="chartCategoria" height="260"></canvas></div>
-        </div>
-    </div>
-    <div class="col-lg-6 mb-4">
-        <div class="content-card">
-            <div class="card-header">Produtividade Mensal</div>
-            <div class="card-body"><canvas id="chartMensal" height="260"></canvas></div>
+            <div class="card-body"><canvas id="chartCategoria" height="200"></canvas></div>
         </div>
     </div>
 </div>
@@ -97,14 +123,36 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const colors = ['#0f62fe','#b85c00','#0e6027','#da1e28','#8b5cf6','#0891b2'];
-    const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { maxRotation: 45 } }, y: { ticks: { stepSize: 1, beginAtZero: true } } } };
+    const colors = ['rgba(15,98,254,0.7)','rgba(184,92,0,0.7)','rgba(14,96,39,0.7)','rgba(218,30,40,0.7)','rgba(139,92,246,0.7)','rgba(8,145,178,0.7)'];
+    const tickColor = '#8b949e';
+    const gridColor = 'rgba(48,54,61,0.5)';
+    const tooltipStyle = {
+        backgroundColor: '#161b22', titleColor: '#e6edf3', bodyColor: '#b0b8c0',
+        borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6, displayColors: true
+    };
+    const chartOptions = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false, labels: { color: tickColor } }, tooltip: tooltipStyle },
+        scales: {
+            x: { ticks: { color: tickColor, maxRotation: 45 }, grid: { color: gridColor }, border: { color: gridColor } },
+            y: { ticks: { color: tickColor, stepSize: 1, beginAtZero: true }, grid: { color: gridColor }, border: { color: gridColor } }
+        }
+    };
+    const chartOptionsHor = JSON.parse(JSON.stringify(chartOptions));
+    chartOptionsHor.indexAxis = 'y';
+    const chartOptionsDoughnut = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'bottom', labels: { color: tickColor, padding: 10, font: { size: 11 } } }, tooltip: tooltipStyle }
+    };
+    const chartOptionsLegend = JSON.parse(JSON.stringify(chartOptions));
+    chartOptionsLegend.plugins.legend.display = true;
+    chartOptionsLegend.plugins.legend.position = 'top';
 
     new Chart(document.getElementById('chartCategoriaChamado'), {
-        type: 'bar', data: { labels: {{ labels_categoria_chamado|safe }}, datasets: [{ data: {{ data_categoria_chamado|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
+        type: 'doughnut', data: { labels: {{ labels_categoria_chamado|safe }}, datasets: [{ data: {{ data_categoria_chamado|safe }}, backgroundColor: colors, borderWidth: 0 }] }, options: chartOptionsDoughnut
     });
     new Chart(document.getElementById('chartSolicitantes'), {
-        type: 'bar', data: { labels: {{ labels_solicitantes|safe }}, datasets: [{ data: {{ data_solicitantes|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
+        type: 'bar', data: { labels: {{ labels_solicitantes|safe }}, datasets: [{ data: {{ data_solicitantes|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptionsHor
     });
     new Chart(document.getElementById('chartCategoria'), {
         type: 'bar', data: { labels: {{ labels_categoria_equip|safe }}, datasets: [{ data: {{ data_categoria_equip|safe }}, backgroundColor: colors, borderRadius: 6 }] }, options: chartOptions
@@ -113,10 +161,10 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'line', data: {
             labels: {{ labels_mes|safe }},
             datasets: [
-                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#0f62fe', backgroundColor: 'rgba(15,98,254,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#0f62fe' },
-                { label: 'Tarefas', data: {{ tarefas_mes|safe }}, borderColor: '#0e6027', backgroundColor: 'rgba(14,96,39,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#0e6027' }
+                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#58a6ff', borderWidth: 2 },
+                { label: 'Tarefas', data: {{ tarefas_mes|safe }}, borderColor: '#6fdd8b', backgroundColor: 'rgba(111,221,139,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#6fdd8b', borderWidth: 2 }
             ]
-        }, options: chartOptions
+        }, options: chartOptionsLegend
     });
 });
 </script>

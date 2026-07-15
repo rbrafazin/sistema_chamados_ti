@@ -65,10 +65,10 @@ class Command(BaseCommand):
 
         # Equipamentos
         equipamentos_data = [
-            {'patrimonio': 'PAT-001', 'categoria': 'computador', 'marca': 'Dell', 'modelo': 'Optiplex 7090', 'localizacao': 'Sala TI', 'responsavel': 'João Silva', 'status': 'ativo', 'hostname': 'SRV-ADM-01', 'numero_serie': 'SN789012', 'ip': '192.168.1.10'},
-            {'patrimonio': 'PAT-002', 'categoria': 'notebook', 'marca': 'Lenovo', 'modelo': 'ThinkPad X1', 'localizacao': 'Financeiro', 'responsavel': 'Ana Costa', 'status': 'ativo', 'hostname': 'NB-FIN-01', 'numero_serie': 'SN123456', 'ip': '192.168.1.20'},
-            {'patrimonio': 'PAT-003', 'categoria': 'impressora', 'marca': 'HP', 'modelo': 'LaserJet M404', 'localizacao': '3º Andar - Corredor', 'responsavel': '', 'status': 'manutencao', 'numero_serie': 'SN654321'},
-            {'patrimonio': 'PAT-004', 'categoria': 'switch', 'marca': 'Cisco', 'modelo': 'Catalyst 2960', 'localizacao': 'Rack Principal', 'responsavel': 'João Silva', 'status': 'ativo', 'numero_serie': 'SN987654', 'ip': '192.168.1.1'},
+            {'patrimonio': 'PAT-001', 'categoria': 'computador', 'marca': 'Dell', 'modelo': 'Optiplex 7090', 'setor': 'ti', 'responsavel': 'João Silva', 'status': 'ativo', 'hostname': 'SRV-ADM-01', 'numero_serie': 'SN789012', 'ip': '192.168.1.10'},
+            {'patrimonio': 'PAT-002', 'categoria': 'notebook', 'marca': 'Lenovo', 'modelo': 'ThinkPad X1', 'setor': 'rh', 'responsavel': 'Ana Costa', 'status': 'ativo', 'hostname': 'NB-FIN-01', 'numero_serie': 'SN123456', 'ip': '192.168.1.20'},
+            {'patrimonio': 'PAT-003', 'categoria': 'impressora', 'marca': 'HP', 'modelo': 'LaserJet M404', 'setor': 'atendimento', 'responsavel': '', 'status': 'manutencao', 'numero_serie': 'SN654321'},
+            {'patrimonio': 'PAT-004', 'categoria': 'switch', 'marca': 'Cisco', 'modelo': 'Catalyst 2960', 'setor': 'ti', 'responsavel': 'João Silva', 'status': 'ativo', 'numero_serie': 'SN987654', 'ip': '192.168.1.1'},
         ]
 
         for ed in equipamentos_data:

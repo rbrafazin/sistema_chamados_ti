@@ -56,15 +56,8 @@
                             <i class="bi bi-person me-1"></i>{{ artigo.autor.get_full_name|default:artigo.autor.username }}
                             <i class="bi bi-calendar3 ms-3 me-1"></i>{{ artigo.criado_em|date:"d/m/Y" }}
                             <i class="bi bi-eye ms-3 me-1"></i>{{ artigo.visualizacoes }}
-                            {% if artigo.categoria %}<span class="badge bg-secondary ms-3">{{ artigo.categoria.nome }}</span>{% endif %}
+                            {% if artigo.categoria %}<span class="badge badge-categoria ms-3">{{ artigo.categoria.nome }}</span>{% endif %}
                         </small>
-                        {% if artigo.tags.all %}
-                        <div class="mt-2">
-                            {% for tag in artigo.tags.all %}
-                            <span class="badge bg-light text-dark me-1"><i class="bi bi-tag me-1"></i>{{ tag.nome }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
                     </div>
                     <div class="btn-group btn-group-sm flex-shrink-0">
                         <a href="{% url 'conhecimento_detail' artigo.pk %}" class="btn btn-outline-primary"><i class="bi bi-eye"></i></a>
@@ -81,7 +74,7 @@
             </div>
         </div>
         {% endfor %}
+        {% include 'includes/pagination.html' with page_obj=artigos %}
     </div>
-    {% include 'includes/pagination.html' with page_obj=artigos %}
 </div>
 {% endblock %}

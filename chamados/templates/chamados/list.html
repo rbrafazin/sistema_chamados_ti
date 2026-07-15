@@ -48,7 +48,7 @@
                             </a>
                         </td>
                         <td>{{ chamado.solicitante }}</td>
-                        <td>{{ chamado.setor }}</td>
+                        <td>{{ chamado.get_setor_display }}</td>
                         <td><span class="badge badge-prioridade-{{ chamado.prioridade }}">{{ chamado.get_prioridade_display }}</span></td>
                         <td><span class="badge badge-status-{{ chamado.status }}">{{ chamado.get_status_display }}</span></td>
                         <td>{{ chamado.tecnico.get_full_name|default:'—' }}</td>
@@ -57,7 +57,6 @@
                             <div class="btn-group btn-group-sm">
                                 <a href="{% url 'chamados_detail' chamado.pk %}" class="btn btn-outline-primary" title="Visualizar"><i class="bi bi-eye"></i></a>
                                 <a href="{% url 'chamados_edit' chamado.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
-                                <a href="{% url 'chamados_delete' chamado.pk %}" class="btn btn-outline-danger" data-confirm="Excluir este chamado?" title="Excluir"><i class="bi bi-trash"></i></a>
                             </div>
                         </td>
                     </tr>

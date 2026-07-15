@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     html += '<div style="width:4px;height:40px;background:'+e.color+';border-radius:2px;flex-shrink:0;margin-top:2px;"></div>';
                     html += '<div class="flex-grow-1"><div class="fw-medium small">'+e.title+'</div>';
                     html += '<small class="text-muted">'+dataStr;
-                    if(e.extendedProps.tipo) html += ' · '+e.extendedProps.tipo;
+                    if(e.extendedProps.tipo_display) html += ' · '+e.extendedProps.tipo_display;
                     html += '</small></div></div>';
                 });
             }
