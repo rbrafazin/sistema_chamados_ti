@@ -430,3 +430,16 @@ body.dark .badge-status-aberto { animation: pulse-badge 2s ease-in-out infinite;
 /* relatorios */
 .relatorio-tabela { max-height: 320px; overflow-y: auto; }
 .relatorio-tabela thead { position: sticky; top: 0; z-index: 2; }
+
+#calendario-ano::-webkit-outer-spin-button,
+#calendario-ano::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#calendario-ano { -moz-appearance: textfield; }
+
+/* pagination dark mode */
+body.dark .pagination{ gap: 4px; }
+body.dark .pagination .page-link { background: #161b22; border-color: #30363d; color: #b0b8c0; font-size: 12px; padding: 4px 10px; }
+body.dark .pagination .page-link:hover { background: #21262d; color: #e6edf3; }
+body.dark .pagination .active>.page-link { background: #0f62fe; border-color: #0f62fe; color: #fff; }
+body.dark .pagination .disabled>.page-link { background: #161b22; color: #484f58; }
+
+.content-card > nav { padding: 0 16px 12px; }

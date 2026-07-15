@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Tarefa
 
 class TarefaForm(forms.ModelForm):
@@ -16,6 +17,8 @@ class TarefaForm(forms.ModelForm):
             css = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
             existing = field.widget.attrs.get('class', '')
             field.widget.attrs['class'] = f'{css} {existing}'.strip()
+        self.fields['responsavel'].queryset = User.objects.filter(perfil__setor='ti').order_by('first_name')
         self.fields['responsavel'].required = False
         self.fields['responsavel'].empty_label = 'Selecionar...'
+        self.fields['responsavel'].label_from_instance = lambda obj: obj.get_full_name() or obj.username
         self.fields['prazo'].required = False

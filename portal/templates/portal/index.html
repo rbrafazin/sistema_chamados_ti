@@ -23,7 +23,7 @@
 
 <div class="card">
     <h2>Meus Chamados (<span id="portal-total">{{ total_chamados }}</span>)</h2>
-    <div id="portal-lista" style="max-height:480px;overflow-y:auto;">
+    <div id="portal-lista">
     {% for c in meus_chamados %}
     <div class="chamado-item">
         <div>
@@ -36,17 +36,13 @@
     <p style="color:#8b949e;font-size:13px;text-align:center;padding:20px 0;">Nenhum chamado encontrado.</p>
     {% endfor %}
     </div>
+    {% include 'includes/pagination.html' with page_obj=meus_chamados %}
 </div>
 
 <script>
-function _esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function _atualizarPortal() {
     fetch('{% url "portal_stats" %}').then(function(r){return r.json()}).then(function(d){
         document.getElementById('portal-total').textContent = d.total;
-        var html = d.chamados.map(function(c){
-            return '<div class="chamado-item"><div><a href="/portal/'+c.pk+'/" class="text-decoration-none" style="color:#c9d1d9;">'+_esc(c.titulo)+'</a><div style="font-size:11px;color:#8b949e;">'+c.data+' &middot; '+c.categoria+'</div></div><span class="badge-'+c.status_class+'">'+c.status+'</span></div>';
-        }).join('') || '<p style="color:#8b949e;font-size:13px;text-align:center;padding:20px 0;">Nenhum chamado encontrado.</p>';
-        document.getElementById('portal-lista').innerHTML = html;
     });
 }
 setInterval(_atualizarPortal, 15000);

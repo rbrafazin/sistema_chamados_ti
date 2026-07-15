@@ -9,7 +9,7 @@ class PerfilForm(forms.ModelForm):
 
     class Meta:
         model = Perfil
-        fields = ['cargo', 'telefone', 'setor']
+        fields = ['telefone', 'setor']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,7 +36,6 @@ class PerfilForm(forms.ModelForm):
 
 class UsuarioForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(), label='Senha', required=False)
-    cargo = forms.ChoiceField(choices=Perfil.CARGO_CHOICES, label='Cargo')
     telefone = forms.CharField(max_length=20, required=False, label='Ramal')
     setor = forms.ChoiceField(choices=Perfil.SETOR_CHOICES, initial='ti', label='Setor')
 
@@ -63,7 +62,6 @@ class UsuarioForm(forms.ModelForm):
         else:
             self.fields['password'].required = True
         if self.instance and hasattr(self.instance, 'perfil'):
-            self.fields['cargo'].initial = self.instance.perfil.cargo
             self.fields['telefone'].initial = self.instance.perfil.telefone
             self.fields['setor'].initial = self.instance.perfil.setor
 
@@ -76,7 +74,6 @@ class UsuarioForm(forms.ModelForm):
             user.save()
             if hasattr(user, 'perfil'):
                 perfil = user.perfil
-                perfil.cargo = self.cleaned_data.get('cargo', 'usuario')
                 perfil.telefone = self.cleaned_data.get('telefone', '')
                 perfil.setor = self.cleaned_data.get('setor', 'ti')
                 perfil.save()

@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -48,6 +49,7 @@ def inventario_list(request):
 def inventario_create(request):
     if request.method == 'POST':
         form = EquipamentoForm(request.POST, request.FILES)
+        form.fields['responsavel'].queryset = User.objects.all()
         if form.is_valid():
             equipamento = form.save()
             HistoricoEquipamento.objects.create(
@@ -92,6 +94,7 @@ def inventario_edit(request, pk):
             'observacoes': equipamento.observacoes,
         }
         form = EquipamentoForm(request.POST, request.FILES, instance=equipamento)
+        form.fields['responsavel'].queryset = User.objects.all()
         if form.is_valid():
             form.save()
             mudancas = []

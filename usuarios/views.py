@@ -13,7 +13,7 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def usuarios_list(request):
     usuarios = User.objects.select_related('perfil').all().order_by('first_name')
-    setor = request.GET.get('setor')
+    setor = request.GET.get('setor', 'ti')
 
     if setor:
         usuarios = usuarios.filter(perfil__setor=setor)

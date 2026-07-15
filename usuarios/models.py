@@ -4,10 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 class Perfil(models.Model):
-    CARGO_CHOICES = [
-        ('ti', 'T.I'),
-        ('usuario', 'Usuário'),
-    ]
     SETOR_CHOICES = [
         ('apoio', 'APOIO'),
         ('atendimento', 'ATENDIMENTO'),
@@ -26,7 +22,6 @@ class Perfil(models.Model):
     ]
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
-    cargo = models.CharField('Cargo', max_length=20, choices=CARGO_CHOICES, default='usuario')
     telefone = models.CharField('Ramal', max_length=20, blank=True)
     setor = models.CharField('Setor', max_length=100, choices=SETOR_CHOICES, default='ti')
     avatar = models.ImageField('Avatar', upload_to='usuarios/avatares/', blank=True, null=True)

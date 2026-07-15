@@ -51,11 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var group = s.nextElementSibling;
         var gid = group ? group.getAttribute('data-group') : null;
 
-        if (gid && _sbState[gid]) {
-            s.classList.add('collapsed');
-            group.classList.add('collapsed');
-        }
-
         s.addEventListener('click', function() {
             this.classList.toggle('collapsed');
             if (group) group.classList.toggle('collapsed');

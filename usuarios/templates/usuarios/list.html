@@ -28,7 +28,6 @@
                         <th>Usuário</th>
                         <th>Nome</th>
                         <th>E-mail</th>
-                        <th>Cargo</th>
                         <th>Setor</th>
                         <th>Admin</th>
                         <th>Ativo</th>
@@ -41,7 +40,6 @@
                         <td><strong>{{ u.username }}</strong></td>
                         <td>{{ u.get_full_name|default:'—' }}</td>
                         <td>{{ u.email|default:'—' }}</td>
-                        <td>{{ u.perfil.get_cargo_display }}</td>
                         <td>{{ u.perfil.get_setor_display }}</td>
                         <td>{% if u.is_staff %}<span class="badge badge-admin-sim">Sim</span>{% else %}<span class="badge badge-admin-nao">Não</span>{% endif %}</td>
                         <td>{% if u.is_active %}<span class="badge badge-ativo-sim">Sim</span>{% else %}<span class="badge badge-ativo-nao">Não</span>{% endif %}</td>

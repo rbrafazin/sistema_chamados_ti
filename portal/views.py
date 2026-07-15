@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from chamados.models import Chamado
 from .forms import PortalChamadoForm
@@ -26,8 +27,12 @@ def portal_index(request):
     else:
         form = PortalChamadoForm()
 
-    meus_chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:10]
-    total_chamados = Chamado.objects.filter(criado_por=request.user).count()
+    chamados_qs = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')
+    total_chamados = chamados_qs.count()
+    paginator = Paginator(chamados_qs, 10)
+    page = request.GET.get('page')
+    meus_chamados = paginator.get_page(page)
+
     return render(request, 'portal/index.html', {
         'form': form,
         'meus_chamados': meus_chamados,
@@ -43,13 +48,5 @@ def portal_detail(request, pk):
 
 @login_required
 def portal_stats(request):
-    chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:10]
-    return JsonResponse({
-        'chamados': [
-            {'pk': c.pk, 'titulo': c.titulo, 'categoria': c.get_categoria_display(),
-             'status': c.get_status_display(), 'status_class': c.status,
-             'data': c.criado_em.strftime('%d/%m/%Y %H:%M')}
-            for c in chamados
-        ],
-        'total': Chamado.objects.filter(criado_por=request.user).count(),
-    })
+    total = Chamado.objects.filter(criado_por=request.user).count()
+    return JsonResponse({'total': total})

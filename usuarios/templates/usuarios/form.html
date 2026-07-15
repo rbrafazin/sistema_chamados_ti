@@ -19,10 +19,9 @@
                 <div class="col-md-6 mb-3">{{ form.password|as_crispy_field }}</div>
             </div>
             <div class="row">
-                <div class="col-md-3 mb-3">{{ form.cargo|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.telefone|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.setor|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">
+                <div class="col-md-4 mb-3">{{ form.telefone|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.setor|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">
                     <label class="form-label d-block">Permissões</label>
                     <div class="form-check form-switch">{{ form.is_staff }} <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">Admin</label></div>
                     <div class="form-check form-switch">{{ form.is_active }} <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Ativo</label></div>

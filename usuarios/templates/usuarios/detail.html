@@ -4,7 +4,6 @@
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
         <h1 class="page-title">{{ usuario.get_full_name|default:usuario.username }}</h1>
-        <p class="page-subtitle">{{ usuario.perfil.get_cargo_display }}</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'usuario_edit' usuario.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
@@ -24,10 +23,6 @@
             <div class="col-md-6 mb-3">
                 <small class="text-muted d-block">E-mail</small>
                 <strong>{{ usuario.email|default:'—' }}</strong>
-            </div>
-            <div class="col-md-4 mb-3">
-                <small class="text-muted d-block">Cargo</small>
-                <strong>{{ usuario.perfil.get_cargo_display }}</strong>
             </div>
             <div class="col-md-4 mb-3">
                 <small class="text-muted d-block">Ramal</small>
