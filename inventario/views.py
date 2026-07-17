@@ -129,15 +129,3 @@ def inventario_edit(request, pk):
         'form': form, 'action': 'Editar Equipamento', 'equipamento': equipamento,
         'usuarios_json': usuarios_por_setor_json(),
     })
-
-@login_required
-def inventario_delete(request, pk):
-    equipamento = get_object_or_404(Equipamento, pk=pk)
-    if request.method == 'POST':
-        try:
-            equipamento.delete()
-            messages.success(request, 'Equipamento excluído!')
-        except Exception:
-            messages.error(request, 'Erro ao excluir. O registro pode estar vinculado a outros dados.')
-        return redirect('inventario_list')
-    return render(request, 'inventario/confirm_delete.html', {'equipamento': equipamento})

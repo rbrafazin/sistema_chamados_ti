@@ -123,12 +123,12 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const colors = ['rgba(15,98,254,0.7)','rgba(184,92,0,0.7)','rgba(14,96,39,0.7)','rgba(218,30,40,0.7)','rgba(139,92,246,0.7)','rgba(8,145,178,0.7)'];
-    const tickColor = '#8b949e';
-    const gridColor = 'rgba(48,54,61,0.5)';
+    const colors = ['rgba(37,99,235,0.7)','rgba(245,158,11,0.7)','rgba(34,197,94,0.7)','rgba(239,68,68,0.7)','rgba(139,92,246,0.7)','rgba(56,189,248,0.7)'];
+    const tickColor = '#64748B';
+    const gridColor = 'rgba(36,50,71,0.5)';
     const tooltipStyle = {
-        backgroundColor: '#161b22', titleColor: '#e6edf3', bodyColor: '#b0b8c0',
-        borderColor: '#30363d', borderWidth: 1, padding: 10, cornerRadius: 6, displayColors: true
+        backgroundColor: '#111827', titleColor: '#F8FAFC', bodyColor: '#94A3B8',
+        borderColor: 'rgba(255,255,255,0.06)', borderWidth: 1, padding: 10, cornerRadius: 6, displayColors: true
     };
     const chartOptions = {
         responsive: true, maintainAspectRatio: false,
@@ -161,8 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'line', data: {
             labels: {{ labels_mes|safe }},
             datasets: [
-                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#58a6ff', borderWidth: 2 },
-                { label: 'Tarefas', data: {{ tarefas_mes|safe }}, borderColor: '#6fdd8b', backgroundColor: 'rgba(111,221,139,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#6fdd8b', borderWidth: 2 }
+                { label: 'Chamados', data: {{ chamados_mes|safe }}, borderColor: '#60A5FA', backgroundColor: 'rgba(96,165,250,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#60A5FA', borderWidth: 2 },
+                { label: 'Tarefas', data: {{ tarefas_mes|safe }}, borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#4ADE80', borderWidth: 2 }
             ]
         }, options: chartOptionsLegend
     });

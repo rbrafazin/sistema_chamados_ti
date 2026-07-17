@@ -96,7 +96,7 @@
                             <span class="ms-2 badge badge-prioridade-{{ tarefa.prioridade }}">{{ tarefa.get_prioridade_display }}</span>
                         </div>
                     </div>
-                    <span class="badge bg-light text-dark">{{ tarefa.get_status_display }}</span>
+                    <span class="badge badge-status-{{ tarefa.status }}">{{ tarefa.get_status_display }}</span>
                 </div>
                 {% empty %}
                 <p class="text-muted text-center py-4 mb-0">Nenhuma tarefa pendente</p>

@@ -65,7 +65,7 @@
                 {% endif %}
                 {% if chamado.observacoes %}
                 <h6 class="fw-bold">Observações Técnicas</h6>
-                <div class="p-3 bg-light rounded">{{ chamado.observacoes|linebreaks }}</div>
+                <div style="background:var(--bg-tertiary);border-radius:8px;padding:16px;">{{ chamado.observacoes|linebreaks }}</div>
                 {% endif %}
                 {% if chamado.imagem_tecnica %}
                 <h6 class="fw-bold mt-3">Imagem Técnica</h6>

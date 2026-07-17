@@ -34,11 +34,11 @@
             </div>
             <div class="col-md-6 mb-3">
                 <small class="text-muted d-block">Admin</small>
-                <span class="badge {% if usuario.is_staff %}bg-success{% else %}bg-secondary{% endif %}">{% if usuario.is_staff %}Sim{% else %}Não{% endif %}</span>
+                <span class="badge badge-admin-{% if usuario.is_staff %}sim{% else %}nao{% endif %}">{% if usuario.is_staff %}Sim{% else %}Não{% endif %}</span>
             </div>
             <div class="col-md-6 mb-3">
                 <small class="text-muted d-block">Ativo</small>
-                <span class="badge {% if usuario.is_active %}bg-success{% else %}bg-danger{% endif %}">{% if usuario.is_active %}Sim{% else %}Não{% endif %}</span>
+                <span class="badge badge-ativo-{% if usuario.is_active %}sim{% else %}nao{% endif %}">{% if usuario.is_active %}Sim{% else %}Não{% endif %}</span>
             </div>
         </div>
     </div>

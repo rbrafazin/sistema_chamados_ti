@@ -1,207 +1,177 @@
 # ABM TI — Sistema de Chamados
 
-Sistema web para gerenciamento de TI desenvolvido com Django + PostgreSQL + Docker.
+Sistema web para gestão de TI desenvolvido com **Django 4.2 + PostgreSQL + Docker**.
 
-## Módulos
+---
+
+## Módulos (9 apps)
 
 | Módulo | Descrição |
 |---|---|
-| **Dashboard** | Visão geral com indicadores clicáveis, chamados recentes e tarefas pendentes |
-| **Chamados** | CRUD completo com filtros, pesquisa, histórico de alterações e notificação por e-mail |
-| **Inventário** | Controle de equipamentos com ícones por categoria, especificações técnicas e histórico |
-| **Base de Conhecimento** | Artigos com categorias, tags e editor de texto |
-| **Tarefas** | Quadro Kanban (A Fazer / Em Andamento / Concluído) com prioridades e prazos |
-| **Calendário** | Eventos com FullCalendar, prioridade com cor automática e clicar no dia para criar |
-| **Relatórios** | Gráficos com Chart.js (status, prioridade, categoria, produtividade mensal) |
-| **Usuários** | Gestão de usuários com perfis, cargos, permissões e tema salvo por usuário |
+| **Dashboard** | Visão geral com cards de stats, chamados recentes, tarefas pendentes e auto-refresh (15s) |
+| **Chamados** | CRUD com filtros, histórico, imagens separadas (solicitante/técnico), dropdown de setor e solicitante |
+| **Inventário** | Controle de equipamentos com categorias, specs técnicas, filtro de campos por tipo, histórico detalhado |
+| **Portal** | Tela limpa para funcionários abrirem chamados com imagem, ver status e resposta do técnico |
+| **Base de Conhecimento** | Artigos com categorias, autor e contador de visualizações |
+| **Tarefas** | Quadro Kanban (A Fazer / Em Andamento / Concluído) com prioridades, prazos e responsáveis |
+| **Calendário** | FullCalendar com eventos, navegação por mês/ano e sidebar de próximos eventos |
+| **Relatórios** | Gráficos com Chart.js, stats mensais, exportação CSV (Excel) e PDF por email |
+| **Usuários** | Gestão de usuários com perfis, setor (14 opções), filtro e controle de acesso via `is_staff` |
+
+---
 
 ## Tecnologias
 
-- **Backend:** Django 4.2
-- **Banco de Dados:** PostgreSQL 15
-- **Frontend:** Bootstrap 5, Chart.js, FullCalendar
-- **Containerização:** Docker & Docker Compose
-- **Servidor Web:** Gunicorn (produção)
+| Camada | Tecnologia |
+|---|---|
+| **Backend** | Python 3.11 + Django 4.2 |
+| **Banco de Dados** | PostgreSQL 15 |
+| **Frontend** | Bootstrap 5.3 + Chart.js + FullCalendar 5 |
+| **Containerização** | Docker + Docker Compose (dev: runserver, prod: Gunicorn + Nginx) |
+| **Relatórios** | WeasyPrint (PDF) + QuickChart (gráficos) |
+| **Fontes** | Inter (Google Fonts) |
+
+---
 
 ## Pré-requisitos
 
-- Docker e Docker Compose instalados
-- Portas 8000 e 5432 disponíveis
+- **Docker Desktop** instalado
+- Portas 8000 (dev) ou 80 (prod) disponíveis
 
-## Instalação Rápida (desenvolvimento)
+---
+
+## Instalação — Desenvolvimento
 
 ```bash
-git clone <repo-url> sistema_chamados_ti
+git clone https://github.com/rbrafazin/sistema_chamados_ti.git
 cd sistema_chamados_ti
-
-# Build e start
-docker compose up --build
-
-# Em outro terminal — migrações (especificar apps na primeira vez)
-docker exec django_app python manage.py makemigrations chamados inventario conhecimento tarefas calendario usuarios
-docker exec django_app python manage.py migrate
-
-# Criar superusuário
-docker exec -it django_app python manage.py createsuperuser
-
-# (Opcional) Popular com dados de demonstração (só funciona com DEBUG=True)
-docker exec django_app python manage.py seed_data
+docker compose up -d
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py createsuperuser
 ```
 
 Acesse: **http://localhost:8000**
 
-## Colocar em Produção
+---
+
+## Instalação — Produção
+
+1. Copie `.env` para `.env.prod` e edite com valores reais (DEBUG=False, senhas fortes, domínio)
+2. Suba com o compose de produção:
 
 ```bash
-# 1. Zerar dados de desenvolvimento (mantém admin)
-docker exec django_app python manage.py shell -c "
-from chamados.models import Chamado, HistoricoChamado
-from inventario.models import Equipamento, HistoricoEquipamento
-from conhecimento.models import Artigo, Categoria, Tag
-from tarefas.models import Tarefa
-from calendario.models import Evento
-from django.contrib.auth.models import User
-
-HistoricoChamado.objects.all().delete()
-Chamado.objects.all().delete()
-HistoricoEquipamento.objects.all().delete()
-Equipamento.objects.all().delete()
-Artigo.objects.all().delete()
-Categoria.objects.all().delete()
-Tag.objects.all().delete()
-Tarefa.objects.all().delete()
-Evento.objects.all().delete()
-User.objects.exclude(username='admin').delete()
-print('Sistema zerado.')
-"
-
-# 2. Editar .env com valores reais (senhas fortes, e-mail, ALLOWED_HOSTS)
-# 3. Subir com compose de produção
-docker compose -f docker-compose.prod.yml up -d --build
-docker exec django_app python manage.py migrate
-docker exec django_app python manage.py collectstatic --noinput
-
-# 4. Criar técnicos pela interface (menu Usuários)
-# 5. Configurar HTTPS com Nginx + Certbot ou Cloudflare
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec web python manage.py migrate
+docker compose -f docker-compose.prod.yml exec web python manage.py collectstatic --noinput
+docker compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
 ```
 
-## Comandos Úteis (dentro do container)
+3. Acesse pelo IP ou domínio na porta 80
 
-```bash
-docker exec -it django_app bash
+---
 
-# Migrações
-python manage.py makemigrations
-python manage.py migrate
+## Controle de Acesso
 
-# Criar superusuário
-python manage.py createsuperuser
+| Tipo | Campo | Acesso |
+|---|---|---|
+| **Técnico (TI)** | `is_staff=True` | Sistema completo (8 módulos) |
+| **Funcionário** | `is_staff=False` | Portal (abrir chamados e ver status) |
 
-# Dados de demonstração (apenas com DEBUG=True)
-python manage.py seed_data
+O middleware `StaffRequiredMiddleware` redireciona automaticamente usuários sem `is_staff` para o portal.
 
-# Shell Django
-python manage.py shell
+---
 
-# Coletar estáticos
-python manage.py collectstatic --noinput
+## Variáveis de Ambiente (`.env`)
+
+```env
+DEBUG=False
+SECRET_KEY=<chave-aleatoria-longa>
+DB_NAME=sistema_ti
+DB_USER=admin
+DB_PASSWORD=<senha-forte>
+DB_HOST=db
+DB_PORT=5432
+ALLOWED_HOSTS=seu-dominio.com,ip-do-servidor
+SITE_URL=http://seu-dominio.com
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=seu-email@gmail.com
+EMAIL_HOST_PASSWORD=<senha-app-gmail>
+NOTIFICACAO_EMAIL=ti@empresa.com.br
+RELATORIO_EMAIL=relatorios@abmti.com.br
 ```
+
+> Use senha de app do Gmail em https://myaccount.google.com/apppasswords
+
+---
 
 ## Estrutura do Projeto
 
 ```
 sistema_chamados_ti/
-├── core/                       # Configurações Django
-│   ├── settings.py
-│   ├── urls.py
-│   ├── context_processors.py   # Contadores da sidebar
-│   └── templates/
-│       ├── base.html           # Layout com sidebar + navbar
-│       ├── includes/           # Componentes reutilizáveis (paginação)
-│       └── registration/
-│           └── login.html
-├── dashboard/                  # Dashboard + comando seed_data
-├── chamados/                   # Chamados (CRUD, filtros, sinais de e-mail)
-├── inventario/                 # Inventário (CRUD, ícones, template tags)
-├── conhecimento/               # Base de Conhecimento (artigos, categorias, tags)
-├── tarefas/                    # Tarefas (Kanban, detalhes)
-├── calendario/                 # Calendário (FullCalendar, eventos por prioridade)
-├── relatorios/                 # Relatórios (Chart.js, 4 gráficos)
-├── usuarios/                   # Usuários (perfis, tema por usuário, permissões)
+├── core/                       # Configuração central
+│   ├── settings.py             # Django settings + Bootstrap 5 dark overrides
+│   ├── urls.py                 # Roteador principal (9 apps + login)
+│   ├── middleware.py           # StaffRequiredMiddleware
+│   ├── context_processors.py   # Contador de chamados abertos (sidebar)
+│   ├── views.py                # CustomLoginView (staff → sistema, não-staff → portal)
+│   ├── utils.py                # Função compartilhada usuarios_por_setor_json
+│   └── templates/              # base.html, login.html, pagination.html
+├── dashboard/                  # Dashboard + comando seed_data de demonstração
+├── chamados/                   # Chamados (CRUD, filtros, signals de email, histórico)
+├── inventario/                 # Inventário (CRUD, campos dinâmicos por categoria, histórico)
+├── portal/                     # Portal do funcionário (abrir chamados, ver status)
+├── conhecimento/               # Base de Conhecimento (artigos, categorias)
+├── tarefas/                    # Tarefas (Kanban, responsável T.I, prioridades)
+├── calendario/                 # Calendário (FullCalendar, navegação mês/ano)
+├── relatorios/                 # Relatórios (Chart.js, CSV, PDF por email)
+├── usuarios/                   # Usuários (CRUD, perfil, setor, filtro)
 ├── static/
-│   ├── css/style.css           # Tema enterprise blue (claro/escuro)
-│   ├── js/main.js              # JavaScript global
-│   └── img/                    # Logo e imagens
+│   ├── css/style.css           # Design system (Linear · GitHub Dark · Vercel)
+│   ├── js/main.js              # Sidebar colapsável + alertas
+│   └── img/                    # Logo ABM
+├── media/                      # Uploads (imagens de chamados/equipamentos)
+├── logs/                       # Logs da aplicação
 ├── Dockerfile
 ├── docker-compose.yml          # Desenvolvimento (runserver)
 ├── docker-compose.prod.yml     # Produção (Gunicorn + Nginx)
-├── nginx.conf                  # Proxy reverso produção
+├── nginx.conf                  # Proxy reverso com gzip + cache de estáticos
 ├── requirements.txt
 ├── .env                        # Variáveis de ambiente (dev)
-├── .env.prod                   # Template para produção
 ├── .gitignore
 ├── manage.py
+├── DOCUMENTACAO.md             # Documentação técnica completa
+├── DIAGRAMA.md                 # Diagramas UML (Mermaid)
 └── README.md
 ```
 
-## Variáveis de Ambiente (.env)
-
-```env
-DEBUG=True
-SECRET_KEY=substitua-por-uma-chave-longa-e-aleatoria
-DB_NAME=sistema_ti
-DB_USER=admin
-DB_PASSWORD=substitua-por-senha-forte
-DB_HOST=db
-DB_PORT=5432
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-# Email (notificações de chamados)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USE_TLS=True
-EMAIL_HOST_USER=seu-email@gmail.com
-EMAIL_HOST_PASSWORD=sua-senha-app
-NOTIFICACAO_EMAIL=ti@empresa.com.br
-```
-
-> **Importante:** Use uma senha de app do Gmail, não sua senha normal. Gere em: https://myaccount.google.com/apppasswords
+---
 
 ## Funcionalidades
 
-- **Tema escuro/claro** salvo por usuário (persiste entre dispositivos)
-- **Sidebar colapsável** com estado salvo
-- **Cards clicáveis** no dashboard (filtram a página de destino)
-- **Paginação** em todas as listas (20 itens/página)
-- **Ícones** nas categorias do inventário
-- **Tags** nos artigos da base de conhecimento
-- **Prioridade → cor automática** nos eventos do calendário
-- **Notificação por e-mail** ao criar chamado
-- **Histórico** de alterações em chamados e equipamentos
-- **Try/except** em todas as operações de exclusão
-- **Proteção CSRF** em todos os formulários
+- **Auto-refresh** — Dashboard e portal atualizam via AJAX a cada 15s
+- **Sidebar colapsável** — Estado persiste em localStorage entre páginas
+- **Campos dinâmicos** — Formulário de inventário esconde campos irrelevantes por categoria
+- **Filtro em cascata** — Setor selecionado filtra solicitante/responsável dinamicamente
+- **Histórico detalhado** — Inventário registra exatamente quais campos foram alterados
+- **Paginação numerada** — `‹ 1 2 3 ›` em todas as listagens
+- **CSV para Excel** — Delimitador `;` + BOM UTF-8, abre direto no Excel sem acentos quebrados
+- **Badges coloridos** — Verde, azul, laranja, vermelho e cinza padronizados
+- **Migrations limpas** — 1 `0001_initial.py` por app (sem histórico de alterações no banco)
+
+---
 
 ## Melhores Práticas Implementadas
 
-- Estrutura modular com 8 apps Django independentes
-- `select_related` e `prefetch_related` para otimização de queries
-- `F()` expressions para evitar race conditions
-- Separação de settings com `python-decouple` + `.env`
-- Templates com herança (`base.html`) e includes reutilizáveis
-- Forms Django com validação server-side
-- Logging de erros em sinais (e-mail)
-- Cabeçalhos de segurança em produção (HSTS, SSL, cookies seguros)
-- Containerização completa com healthcheck no PostgreSQL
+- Estrutura modular com 9 apps Django
+- `select_related` em todas as queries com FK
+- Variáveis de ambiente com `python-decouple` + `.env`
+- Healthcheck no PostgreSQL e Django
+- Proteção CSRF em todos os formulários
+- XSS protection com escape HTML no JavaScript
+- Headers de segurança em produção (HSTS, SSL, cookies seguros)
+- Logging configurado (console + arquivo)
 - Persistência de dados com Docker Volumes
 - Seed data protegido (não executa em produção)
-- Código em português para adequação ao domínio
-
-## Sugestões de Melhorias Futuras
-
-- Notificações em tempo real (Django Channels + WebSocket)
-- API REST com Django REST Framework
-- Sistema de SLA com alertas de prazo
-- Portal simplificado para solicitantes (sem acesso ao sistema completo)
-- Exportação de relatórios em PDF/Excel
-- Integração com Zabbix/Grafana
-- Autenticação via LDAP/Active Directory

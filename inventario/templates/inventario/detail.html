@@ -9,7 +9,6 @@
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'inventario_edit' equipamento.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
-        <a href="{% url 'inventario_delete' equipamento.pk %}" class="btn btn-outline-danger btn-sm" data-confirm="Excluir este equipamento?"><i class="bi bi-trash"></i> Excluir</a>
     </div>
 </div>
 
@@ -23,22 +22,43 @@
                 <div class="info-item"><span class="info-label">Status</span><span class="info-value">{{ equipamento.get_status_display }}</span></div>
                 <div class="info-item"><span class="info-label">Marca</span><span class="info-value">{{ equipamento.marca }}</span></div>
                 <div class="info-item"><span class="info-label">Modelo</span><span class="info-value">{{ equipamento.modelo }}</span></div>
-                <div class="info-item"><span class="info-label">Nº Série</span><span class="info-value">{{ equipamento.numero_serie|default:'—' }}</span></div>
+                {% if equipamento.numero_serie %}
+                <div class="info-item"><span class="info-label">Nº Série</span><span class="info-value">{{ equipamento.numero_serie }}</span></div>
+                {% endif %}
 
+                {% if equipamento.processador or equipamento.memoria_ram or equipamento.armazenamento %}
                 <div class="info-divider">Especificações Técnicas</div>
+                {% if equipamento.processador %}
+                <div class="info-item info-wide"><span class="info-label">Processador</span><span class="info-value">{{ equipamento.processador }}</span></div>
+                {% endif %}
+                {% if equipamento.memoria_ram %}
+                <div class="info-item"><span class="info-label">Memória RAM</span><span class="info-value">{{ equipamento.memoria_ram }}</span></div>
+                {% endif %}
+                {% if equipamento.armazenamento %}
+                <div class="info-item"><span class="info-label">Armazenamento</span><span class="info-value">{{ equipamento.armazenamento }}</span></div>
+                {% endif %}
+                {% endif %}
 
-                <div class="info-item info-wide"><span class="info-label">Processador</span><span class="info-value">{{ equipamento.processador|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">Memória RAM</span><span class="info-value">{{ equipamento.memoria_ram|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">Armazenamento</span><span class="info-value">{{ equipamento.armazenamento|default:'—' }}</span></div>
-
+                {% if equipamento.sistema_operacional or equipamento.ip or equipamento.mac_address or equipamento.hostname %}
                 <div class="info-divider">Rede e Localização</div>
+                {% if equipamento.sistema_operacional %}
+                <div class="info-item"><span class="info-label">Sistema Operacional</span><span class="info-value">{{ equipamento.sistema_operacional }}</span></div>
+                {% endif %}
+                {% if equipamento.ip %}
+                <div class="info-item"><span class="info-label">Endereço IP</span><span class="info-value">{{ equipamento.ip }}</span></div>
+                {% endif %}
+                {% if equipamento.mac_address %}
+                <div class="info-item"><span class="info-label">MAC Address</span><span class="info-value">{{ equipamento.mac_address }}</span></div>
+                {% endif %}
+                {% if equipamento.hostname %}
+                <div class="info-item"><span class="info-label">Hostname</span><span class="info-value">{{ equipamento.hostname }}</span></div>
+                {% endif %}
+                {% endif %}
 
-                <div class="info-item"><span class="info-label">Sistema Operacional</span><span class="info-value">{{ equipamento.sistema_operacional|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">Endereço IP</span><span class="info-value">{{ equipamento.ip|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">MAC Address</span><span class="info-value">{{ equipamento.mac_address|default:'—' }}</span></div>
-                <div class="info-item"><span class="info-label">Hostname</span><span class="info-value">{{ equipamento.hostname|default:'—' }}</span></div>
                 <div class="info-item"><span class="info-label">Setor</span><span class="info-value">{{ equipamento.get_setor_display }}</span></div>
-                <div class="info-item"><span class="info-label">Responsável</span><span class="info-value">{{ equipamento.responsavel.get_full_name|default:'—' }}</span></div>
+                {% if equipamento.responsavel %}
+                <div class="info-item"><span class="info-label">Responsável</span><span class="info-value">{{ equipamento.responsavel.get_full_name }}</span></div>
+                {% endif %}
 
                 {% if equipamento.imagem %}
                 <div class="info-divider">Imagem</div>

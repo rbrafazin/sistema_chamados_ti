@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Chamado
 
 class ChamadoForm(forms.ModelForm):
@@ -18,6 +19,8 @@ class ChamadoForm(forms.ModelForm):
             field.widget.attrs['class'] = f'{css} {existing}'.strip()
         self.fields['tecnico'].required = False
         self.fields['tecnico'].empty_label = 'Selecionar...'
+        self.fields['tecnico'].queryset = User.objects.filter(perfil__setor='ti', is_active=True).order_by('first_name')
+        self.fields['tecnico'].label_from_instance = lambda obj: obj.get_full_name() or obj.username
         self.fields['categoria'].required = True
         self.fields['categoria'].choices = [(k, v) for k, v in self.fields['categoria'].choices if k]
         self.fields['prioridade'].required = True

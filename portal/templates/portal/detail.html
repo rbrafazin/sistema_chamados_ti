@@ -1,34 +1,30 @@
 {% extends 'portal/base.html' %}
 {% block title %}Chamado #{{ chamado.pk }} — Portal{% endblock %}
 {% block content %}
-<div class="card">
+<div class="content-card mb-4">
     <div class="d-flex justify-content-between align-items-start mb-3">
-        <h2 class="mb-0">#{{ chamado.pk }} — {{ chamado.titulo }}</h2>
-        <span class="badge-{{ chamado.status }}">{{ chamado.get_status_display }}</span>
+        <h2 class="mb-0" style="color:#F8FAFC;">#{{ chamado.pk }} — {{ chamado.titulo }}</h2>
+        <span class="badge badge-status-{{ chamado.status }}">{{ chamado.get_status_display }}</span>
     </div>
-    <div style="font-size:13px;color:#8b949e;margin-bottom:16px;">
-        {{ chamado.criado_em|date:"d/m/Y H:i" }} &middot; {{ chamado.get_categoria_display }} &middot; {{ chamado.get_prioridade_display }}
-    </div>
-    <p style="color:#c9d1d9;font-size:14px;white-space:pre-wrap;">{{ chamado.descricao }}</p>
+    <small class="text-muted d-block mb-3">{{ chamado.criado_em|date:"d/m/Y H:i" }} &middot; {{ chamado.get_categoria_display }} &middot; {{ chamado.get_prioridade_display }}</small>
+    <p style="white-space:pre-wrap;color:#F8FAFC;">{{ chamado.descricao }}</p>
     {% if chamado.imagem_solicitante %}
     <div style="margin-top:16px;">
-        <strong style="font-size:13px;color:#8b949e;">Imagem anexada</strong>
-        <div style="margin-top:8px;">
-            <a href="{{ chamado.imagem_solicitante.url }}" target="_blank">
-                <img src="{{ chamado.imagem_solicitante.url }}" alt="Imagem" style="max-width:100%;max-height:400px;border-radius:8px;">
-            </a>
-        </div>
+        <small class="text-muted d-block mb-2">Imagem anexada</small>
+        <a href="{{ chamado.imagem_solicitante.url }}" target="_blank">
+            <img src="{{ chamado.imagem_solicitante.url }}" alt="Imagem" style="max-width:100%;max-height:400px;border-radius:8px;">
+        </a>
     </div>
     {% endif %}
     {% if chamado.observacoes %}
-    <div style="margin-top:16px;padding:16px;background:#0d1117;border-radius:8px;border:1px solid #30363d;">
-        <strong style="font-size:13px;color:#8b949e;">Resposta do Técnico</strong>
-        <p style="color:#c9d1d9;font-size:13px;margin-top:8px;white-space:pre-wrap;">{{ chamado.observacoes }}</p>
+    <div style="margin-top:16px;padding:16px;background:var(--bg);border-radius:8px;border:1px solid var(--border);">
+        <small class="text-muted d-block mb-2">Resposta do Técnico</small>
+        <p style="white-space:pre-wrap;color:#F8FAFC;">{{ chamado.observacoes }}</p>
         {% if chamado.imagem_tecnica %}
         <img src="{{ chamado.imagem_tecnica.url }}" alt="Imagem" style="max-width:100%;max-height:300px;border-radius:6px;margin-top:8px;">
         {% endif %}
     </div>
     {% endif %}
 </div>
-<a href="{% url 'portal_index' %}" class="btn-outline">&larr; Voltar</a>
+<a href="{% url 'portal_index' %}" class="btn btn-outline-secondary btn-sm">&larr; Voltar</a>
 {% endblock %}

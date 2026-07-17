@@ -20,21 +20,25 @@
                 <div class="col-md-4 mb-3">{{ form.modelo|as_crispy_field }}</div>
                 <div class="col-md-4 mb-3">{{ form.numero_serie|as_crispy_field }}</div>
             </div>
-            <div class="row">
+
+            <div class="row" id="group-specs">
                 <div class="col-md-6 mb-3">{{ form.processador|as_crispy_field }}</div>
                 <div class="col-md-3 mb-3">{{ form.memoria_ram|as_crispy_field }}</div>
                 <div class="col-md-3 mb-3">{{ form.armazenamento|as_crispy_field }}</div>
             </div>
+
             <div class="row">
-                <div class="col-md-3 mb-3">{{ form.sistema_operacional|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.ip|as_crispy_field }}</div>
-                <div class="col-md-3 mb-3">{{ form.mac_address|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3" id="field-so">{{ form.sistema_operacional|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3" id="field-ip">{{ form.ip|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3" id="field-mac">{{ form.mac_address|as_crispy_field }}</div>
                 <div class="col-md-3 mb-3">{{ form.status|as_crispy_field }}</div>
             </div>
+
             <div class="row">
                 <div class="col-md-6 mb-3">{{ form.setor|as_crispy_field }}</div>
-                <div class="col-md-6 mb-3">{{ form.responsavel|as_crispy_field }}</div>
+                <div class="col-md-6 mb-3" id="field-resp">{{ form.responsavel|as_crispy_field }}</div>
             </div>
+
             <div class="mb-3">{{ form.observacoes|as_crispy_field }}</div>
             {{ form.imagem|as_crispy_field }}
             <div class="d-flex gap-2">
@@ -66,5 +70,28 @@ function _filtrar() {
 
 selSetor.addEventListener('change', _filtrar);
 if (selSetor.value) _filtrar();
+
+// Show/hide groups based on category
+var GRUPOS = {
+    'impressora': ['group-specs', 'field-mac', 'field-so', 'field-resp'],
+    'monitor':    ['group-specs', 'field-ip', 'field-mac', 'field-so'],
+    'roteador':   ['group-specs', 'field-so', 'field-resp'],
+    'switch':     ['group-specs', 'field-ip', 'field-mac', 'field-so', 'field-resp'],
+};
+
+function _aplicarCategoria() {
+    var cat = document.querySelector('select[name="categoria"]').value;
+    ['group-specs', 'field-mac', 'field-so', 'field-ip', 'field-resp'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = '';
+    });
+    (GRUPOS[cat] || []).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+}
+
+document.querySelector('select[name="categoria"]').addEventListener('change', _aplicarCategoria);
+_aplicarCategoria();
 </script>
 {% endblock %}

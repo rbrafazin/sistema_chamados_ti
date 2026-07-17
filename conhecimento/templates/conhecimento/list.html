@@ -19,7 +19,7 @@
                 </a>
                 {% for cat in categorias %}
                 <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if current_categoria == cat.pk|stringformat:'i' %}active{% endif %}">
-                    <a href="?categoria={{ cat.pk }}" class="text-decoration-none flex-grow-1 {% if current_categoria == cat.pk|stringformat:'i' %}text-white{% endif %}">{{ cat.nome }}</a>
+                    <a href="?categoria={{ cat.pk }}" class="text-decoration-none flex-grow-1">{{ cat.nome }}</a>
                     <div class="d-flex gap-1 ms-2">
                         <a href="{% url 'categoria_edit' cat.pk %}" class="lh-1 {% if current_categoria == cat.pk|stringformat:'i' %}text-white-50{% else %}text-muted{% endif %}" title="Editar categoria"><i class="bi bi-pencil small"></i></a>
                         <a href="{% url 'categoria_delete' cat.pk %}" class="lh-1 {% if current_categoria == cat.pk|stringformat:'i' %}text-white-50{% else %}text-muted{% endif %}" title="Excluir categoria"><i class="bi bi-x-lg"></i></a>

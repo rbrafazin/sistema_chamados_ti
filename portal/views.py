@@ -48,5 +48,15 @@ def portal_detail(request, pk):
 
 @login_required
 def portal_stats(request):
-    total = Chamado.objects.filter(criado_por=request.user).count()
-    return JsonResponse({'total': total})
+    chamados = Chamado.objects.filter(criado_por=request.user).order_by('-criado_em')[:10]
+    return JsonResponse({
+        'total': Chamado.objects.filter(criado_por=request.user).count(),
+        'chamados': [{
+            'pk': c.pk,
+            'titulo': c.titulo,
+            'status': c.get_status_display(),
+            'status_class': c.status,
+            'data': c.criado_em.strftime('%d/%m/%Y %H:%M'),
+            'categoria': c.get_categoria_display(),
+        } for c in chamados]
+    })
