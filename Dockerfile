@@ -14,6 +14,8 @@ RUN apt-get update \
         libgdk-pixbuf-2.0-0 \
         libgdk-pixbuf-xlib-2.0-0 \
         libffi-dev \
+        libcairo2 \
+        libpangoft2-1.0-0 \
         shared-mime-info \
     && rm -rf /var/lib/apt/lists/*
 

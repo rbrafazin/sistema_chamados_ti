@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}{{ patrimonio.numero_patrimonio }} — Patrimônio — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">{{ patrimonio.numero_patrimonio }}</h1>
+        <p class="page-subtitle">{{ patrimonio.nome }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'apoio_patrimonio_edit' patrimonio.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
+        <a href="{% url 'apoio_patrimonio_delete' patrimonio.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Excluir</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="content-card mb-3">
+            <div class="card-header">Informações do Patrimônio</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Nº Patrimônio</small>
+                        <strong>{{ patrimonio.numero_patrimonio }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Categoria</small>
+                        <strong>{{ patrimonio.get_categoria_display }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Situação</small>
+                        <strong>{{ patrimonio.get_situacao_display }}</strong>
+                    </div>
+                    {% if patrimonio.marca %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Marca</small>
+                        <strong>{{ patrimonio.marca }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if patrimonio.modelo %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Modelo</small>
+                        <strong>{{ patrimonio.modelo }}</strong>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Setor</small>
+                        <strong>{{ patrimonio.get_setor_display }}</strong>
+                    </div>
+                    {% if patrimonio.responsavel %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Responsável</small>
+                        <strong>{{ patrimonio.responsavel }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if patrimonio.data_aquisicao %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Data de Aquisição</small>
+                        <strong>{{ patrimonio.data_aquisicao|date:"d/m/Y" }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if patrimonio.valor_aquisicao %}
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Valor de Aquisição</small>
+                        <strong>R$ {{ patrimonio.valor_aquisicao|floatformat:2 }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if patrimonio.descricao %}
+                <hr>
+                <h6 class="fw-bold">Descrição</h6>
+                <p class="mb-3">{{ patrimonio.descricao|linebreaks }}</p>
+                {% endif %}
+                {% if patrimonio.observacoes %}
+                <hr>
+                <h6 class="fw-bold">Observações</h6>
+                <p class="mb-0">{{ patrimonio.observacoes|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Histórico de Alterações</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" style="max-height:400px; overflow-y:auto;">
+                    {% for h in historico %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong class="small">{{ h.acao }}</strong>
+                            <small class="text-muted">{{ h.criado_em|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% if h.descricao %}<small class="text-muted">{{ h.descricao }}</small>{% endif %}
+                        <div><small class="text-muted">por {{ h.usuario.get_full_name|default:h.usuario.username|default:"—" }}</small></div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Nenhuma alteração registrada</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        {% if patrimonio.imagem %}
+        <div class="content-card mb-3">
+            <div class="card-header">Nota Fiscal</div>
+            <div class="card-body p-2">
+                <a href="{{ patrimonio.imagem.url }}" target="_blank">
+                    <img src="{{ patrimonio.imagem.url }}" alt="Nota Fiscal" class="img-fluid rounded" style="max-height:400px;">
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

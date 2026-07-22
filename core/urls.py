@@ -15,6 +15,7 @@ urlpatterns = [
     path('relatorios/', include('relatorios.urls')),
     path('usuarios/', include('usuarios.urls')),
     path('portal/', include('portal.urls')),
+    path('apoio/', include('apoio.urls')),
     path('accounts/login/', CustomLoginView.as_view(), name='login'),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

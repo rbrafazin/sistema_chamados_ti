@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+{% block title %}{{ produto.nome }} — Estoque — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">{{ produto.nome }}</h1>
+        <p class="page-subtitle">
+            {% if produto.marca %}{{ produto.marca }} &middot; {% endif %}{{ produto.get_categoria_display }} &middot; {{ produto.get_unidade_medida_display }}
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'apoio_estoque_edit' produto.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i> Editar</a>
+        {% if produto.quantidade_estoque == 0 %}
+        <a href="{% url 'apoio_estoque_delete' produto.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i> Excluir</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="content-card mb-3">
+            <div class="card-header">Informações do Produto</div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Quantidade em Estoque</small>
+                        <strong>{{ produto.quantidade_estoque }} {{ produto.get_unidade_medida_display }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Estoque Mínimo</small>
+                        <strong>{{ produto.estoque_minimo }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Status</small>
+                        <strong>
+                            {% if produto.quantidade_estoque == 0 %}
+                            <span class="badge badge-ativo-nao">Zerado</span>
+                            {% elif produto.quantidade_estoque <= produto.estoque_minimo %}
+                            <span class="badge badge-prioridade-alta">Baixo</span>
+                            {% else %}
+                            <span class="badge badge-status-ativo">Normal</span>
+                            {% endif %}
+                        </strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Valor de Custo (última compra)</small>
+                        <strong>R$ {{ produto.valor_custo|floatformat:2 }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Valor Total em Estoque</small>
+                        <strong>R$ {{ produto.valor_total|floatformat:2 }}</strong>
+                    </div>
+                    <div class="col-md-4 mb-2">
+                        <small class="text-muted d-block">Total de Fornecedores</small>
+                        <strong>{{ produto.fornecedores.count }}</strong>
+                    </div>
+                </div>
+                {% if ultima_entrada %}
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <small>
+                        Última compra: <strong>R$ {{ ultima_entrada.custo|floatformat:2 }}</strong>
+                        {% if ultima_entrada.fornecedor %} por <strong>{{ ultima_entrada.fornecedor.nome }}</strong>{% endif %}
+                        em {{ ultima_entrada.data_hora|date:"d/m/Y" }} (qtd. {{ ultima_entrada.quantidade }}).
+                    </small>
+                </div>
+                {% endif %}
+                {% if produto.descricao %}
+                <hr>
+                <h6 class="fw-bold">Descrição</h6>
+                <p class="mb-3">{{ produto.descricao|linebreaks }}</p>
+                {% endif %}
+                {% if produto.observacoes %}
+                <hr>
+                <h6 class="fw-bold">Observações</h6>
+                <p class="mb-0">{{ produto.observacoes|linebreaks }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Histórico de Alterações</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" style="max-height:320px; overflow-y:auto;">
+                    {% for h in historico %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong class="small">{{ h.acao }}</strong>
+                            <small class="text-muted">{{ h.criado_em|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% if h.descricao %}<small class="text-muted">{{ h.descricao }}</small>{% endif %}
+                        <div><small class="text-muted">por {{ h.usuario.get_full_name|default:h.usuario.username|default:"—" }}</small></div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Nenhuma alteração registrada</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="content-card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-truck me-2"></i>Fornecedores</span>
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-vincular-fornecedor">
+                    <i class="bi bi-plus-lg"></i> Vincular
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Fornecedor</th>
+                                <th class="text-end">Estoque</th>
+                                <th class="text-end">Último preço</th>
+                                <th class="text-end">Médio</th>
+                                <th>Última compra</th>
+                                <th class="text-center">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in comparacao %}
+                            <tr {% if c.mais_barato %}class="table-success"{% endif %}>
+                                <td>
+                                    <strong>{{ c.fornecedor.nome }}</strong>
+                                    {% if c.mais_barato %}<span class="badge badge-status-ativo ms-1"><i class="bi bi-cash-coin"></i> Mais barato</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if c.estoque and c.estoque > 0 %}<strong>{{ c.estoque }}</strong>
+                                    {% else %}<span class="text-muted">0</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if c.ultimo_preco is not None %}
+                                    <strong>R$ {{ c.ultimo_preco|floatformat:2 }}</strong>
+                                    {% elif c.preco_catalogo is not None and c.preco_catalogo > 0 %}
+                                    <small class="text-muted" title="Catálogo, sem compra real">R$ {{ c.preco_catalogo|floatformat:2 }}*</small>
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if c.preco_medio is not None %}R$ {{ c.preco_medio|floatformat:2 }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td>
+                                    {% if c.ultima_compra %}<small>{{ c.ultima_compra|date:"d/m/Y" }}</small>
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if c.pf_id %}
+                                    <form method="post" action="{% url 'apoio_fornecedor_remover' c.pf_id %}" onsubmit="return confirm('Remover este vínculo? O saldo {{ c.estoque|default:0 }} sera perdido.')" class="d-inline">
+                                        {% csrf_token %}
+                                        <button class="btn btn-outline-danger btn-sm py-0 px-1" title="Desvincular"><i class="bi bi-x-lg"></i></button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6" class="text-muted text-center py-3">Nenhum fornecedor vinculado</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-arrow-left-right me-2"></i>Movimentações Recentes</span>
+                <a href="{% url 'apoio_movimentacoes_list' %}?produto={{ produto.nome }}" class="btn btn-outline-primary btn-sm">Ver todas ({{ total_movimentacoes }})</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for m in movimentacoes %}
+                    <div class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <strong class="small">
+                                {% if m.tipo == 'entrada' %}<span class="text-success">Entrada</span>
+                                {% else %}<span class="text-danger">Saída</span>{% endif %}
+                                : {{ m.quantidade }}
+                            </strong>
+                            <small class="text-muted">{{ m.data_hora|date:"d/m/Y H:i" }}</small>
+                        </div>
+                        {% if m.motivo %}<small class="text-muted">Motivo: {{ m.get_motivo_display }}</small>{% endif %}
+                        <div><small class="text-muted">Saldo após: {{ m.saldo_apos }}{% if m.fornecedor %} · {{ m.fornecedor.nome }}{% endif %}{% if m.nota_fiscal %} · <a href="{{ m.nota_fiscal.url }}" target="_blank" class="text-decoration-none"><i class="bi bi-file-earmark-text"></i> NF</a>{% endif %}</small></div>
+                        {% if m.observacao %}<small class="text-muted d-block">{{ m.observacao }}</small>{% endif %}
+                        <div><small class="text-muted">por {{ m.usuario.get_full_name|default:m.usuario.username }}</small></div>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Nenhuma movimentação</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-vincular-fornecedor" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form method="post" action="{% url 'apoio_fornecedor_vincular' produto.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Vincular Fornecedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Fornecedor</label>
+                        <select name="fornecedor_id" class="form-select" required>
+                            <option value="">Selecionar...</option>
+                            {% for f in todos_fornecedores %}
+                            <option value="{{ f.pk }}">{{ f.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Preço Unitário de Catálogo (R$)</label>
+                        <input type="number" name="preco" class="form-control" step="0.01" min="0" placeholder="0,00 (opcional)">
+                        <small class="text-muted">Será atualizado automaticamente na primeira compra real com custo.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Vincular</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

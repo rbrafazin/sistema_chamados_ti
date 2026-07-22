@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Fornecedores — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Fornecedores</h1>
+        <p class="page-subtitle">Gerenciamento de fornecedores do setor de Apoio</p>
+    </div>
+    <a href="{% url 'apoio_fornecedor_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Fornecedor</a>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Categoria...</option>
+                {% for val, label in categorias %}
+                <option value="{{ val }}" {% if current_categoria == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="busca" class="form-control form-control-sm" placeholder="Pesquisar por nome ou vendedor..." value="{{ busca|default:'' }}" style="max-width:300px;">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+            <a href="{% url 'apoio_fornecedor_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover" id="data-table">
+                <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th>CNPJ</th>
+                        <th>Categoria</th>
+                        <th>Vendedor</th>
+                        <th>Telefone</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fornecedores %}
+                    <tr>
+                        <td><a href="{% url 'apoio_fornecedor_detail' f.pk %}" class="text-decoration-none fw-medium">{{ f.nome }}</a></td>
+                        <td>{{ f.cnpj|default:'—' }}</td>
+                        <td>{{ f.get_categoria_display }}</td>
+                        <td>{{ f.contato|default:'—' }}</td>
+                        <td>{{ f.telefone|default:'—' }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'apoio_fornecedor_detail' f.pk %}" class="btn btn-outline-primary" title="Ver"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'apoio_fornecedor_edit' f.pk %}" class="btn btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'apoio_fornecedor_delete' f.pk %}" class="btn btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-muted text-center py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Nenhum fornecedor encontrado</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include 'includes/pagination.html' with page_obj=fornecedores %}
+</div>
+{% endblock %}

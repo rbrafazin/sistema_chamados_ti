@@ -1,0 +1,409 @@
+{% extends 'base.html' %}
+{% block title %}Estoque — Apoio — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Estoque</h1>
+        <p class="page-subtitle">Gerenciamento de produtos do setor de Apoio</p>
+    </div>
+    <a href="{% url 'apoio_estoque_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Produto</a>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Categoria...</option>
+                {% for val, label in categorias %}
+                <option value="{{ val }}" {% if current_categoria == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Status...</option>
+                <option value="normal" {% if current_status == 'normal' %}selected{% endif %}>Estoque Normal</option>
+                <option value="baixo" {% if current_status == 'baixo' %}selected{% endif %}>Estoque Baixo</option>
+                <option value="sem_estoque" {% if current_status == 'sem_estoque' %}selected{% endif %}>Sem Estoque</option>
+            </select>
+            <select name="fornecedor" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Fornecedor...</option>
+                {% for f in fornecedores_list %}
+                <option value="{{ f.pk }}" {% if current_fornecedor == f.pk|stringformat:"s" %}selected{% endif %}>{{ f.nome }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="busca" class="form-control form-control-sm" placeholder="Pesquisar produto, marca, fornecedor..." value="{{ busca|default:'' }}" style="max-width:300px;">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+            <a href="{% url 'apoio_estoque_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        </form>
+    </div>
+    <div class="card-body">
+        {% if produtos %}
+        <div class="product-grid">
+            {% for p in produtos %}
+            <div class="product-card">
+                <div class="pc-header">
+                    <a href="{% url 'apoio_estoque_detail' p.pk %}" class="pc-title text-decoration-none">{{ p.nome }}</a>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        <span class="badge badge-categoria">{{ p.get_categoria_display }}</span>
+                        {% if p.quantidade_estoque == 0 %}
+                        <span class="badge badge-ativo-nao">Sem Estoque</span>
+                        {% elif p.quantidade_estoque <= p.estoque_minimo %}
+                        <span class="badge badge-prioridade-alta">Estoque Baixo</span>
+                        {% else %}
+                        <span class="badge badge-status-ativo">Estoque Normal</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if p.marca %}<small class="d-block mb-2" style="font-weight:500;">{{ p.marca }}</small>{% endif %}
+                <div class="pc-body">
+                    <span class="pc-stat"><i class="bi bi-box-seam"></i> {{ p.quantidade_estoque }} {{ p.unidade_display_plural }}</span>
+                    <span class="pc-stat">R$ {{ p.valor_custo|floatformat:2 }}</span>
+                </div>
+                {% if p.fornecedores.count > 0 %}
+                <div class="pc-supplier">
+                    <i class="bi bi-truck me-1"></i>
+                    {% for pf in p.fornecedores.all %}{{ pf.fornecedor.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                </div>
+                {% endif %}
+                <div class="pc-actions">
+                    <a href="{% url 'apoio_estoque_detail' p.pk %}" class="btn btn-outline-primary btn-sm" title="Ver"><i class="bi bi-eye"></i></a>
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-movimentar"
+                        data-bs-toggle="modal" data-bs-target="#modal-movimentar"
+                        data-pk="{{ p.pk }}" data-nome="{{ p.nome }}"
+                        data-estoque="{{ p.quantidade_estoque }}" data-unidade="{{ p.get_unidade_medida_display }}"
+                        data-custo="{{ p.valor_custo|floatformat:2 }}"
+                        data-fornecedor=""
+                        title="Movimentar"><i class="bi bi-arrow-left-right"></i></button>
+                    <a href="{% url 'apoio_estoque_edit' p.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar"><i class="bi bi-pencil"></i></a>
+                    {% if p.quantidade_estoque == 0 %}
+                    <a href="{% url 'apoio_estoque_delete' p.pk %}" class="btn btn-outline-danger btn-sm" title="Excluir"><i class="bi bi-trash"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Nenhum produto encontrado</p>
+        {% endif %}
+    </div>
+    {% include 'includes/pagination.html' with page_obj=produtos %}
+</div>
+
+<!-- Modal único de movimentação -->
+<div class="modal fade" id="modal-movimentar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="max-width:480px;">
+            <form method="post" action="" id="form-movimentar" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title">Movimentar: <span id="mov-nome"></span></h5>
+                        <small class="text-muted d-block mt-1">
+                            Estoque atual: <strong id="mov-estoque"></strong> <span id="mov-unidade"></span>
+                            &middot; Custo: <strong id="mov-custo-atual"></strong>
+                        </small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Seção 1: Operação -->
+                    <div class="form-label mb-2 text-uppercase text-muted" style="font-size:0.7rem;letter-spacing:0.5px;">Operação</div>
+                    <input type="hidden" name="tipo" id="mov-tipo" value="entrada">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <button type="button" class="btn-tipo card w-100 h-100 text-center p-2" data-tipo="entrada">
+                                <i class="bi bi-arrow-down-circle text-success d-block" style="font-size:1.25rem;"></i>
+                                <small class="d-block mt-1">Entrada</small>
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn-tipo card w-100 h-100 text-center p-2" data-tipo="saida">
+                                <i class="bi bi-arrow-up-circle text-danger d-block" style="font-size:1.25rem;"></i>
+                                <small class="d-block mt-1">Saída / Baixa</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <select name="motivo" class="form-select" id="mov-motivo"></select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Quantidade</label>
+                        <input type="number" name="quantidade" class="form-control" min="1" required>
+                    </div>
+                    <div class="mb-3" id="grp-custo">
+                        <label class="form-label">Custo Unitário (R$)</label>
+                        <input type="number" name="custo" class="form-control" step="0.01" min="0" placeholder="0,00" id="mov-custo">
+                    </div>
+                    <div class="mb-3" id="grp-nota">
+                        <label class="form-label">Nota Fiscal</label>
+                        <input type="file" name="nota_fiscal" class="form-control" accept="image/*,.pdf">
+                    </div>
+
+                    <!-- Seção 3: Fornecedor & Observação -->
+                    <div class="mb-3" id="grp-fornecedor">
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            Fornecedor
+                            <small class="text-muted" id="mov-saldo-forn" style="display:none;">saldo: <strong></strong></small>
+                        </label>
+                        <div class="input-group">
+                            <select name="fornecedor_id" class="form-select" id="mov-fornecedor" required>
+                                <option value="">Selecionar...</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-primary" id="btn-novo-fornecedor" title="Cadastrar fornecedor rápido">
+                                <i class="bi bi-plus-lg"></i> Novo
+                            </button>
+                        </div>
+                        <div class="form-text text-warning" id="mov-forn-vazio" style="display:none;">
+                            <i class="bi bi-exclamation-triangle"></i> Nenhum fornecedor com saldo. Faça uma entrada primeiro.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observação</label>
+                        <textarea name="observacao" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-registrar">Registrar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sub-modal: cadastro rápido de fornecedor -->
+<div class="modal fade" id="modal-novo-fornecedor" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form id="form-novo-fornecedor">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-truck me-2"></i>Novo Fornecedor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nome da Empresa *</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vendedor</label>
+                        <input type="text" name="contato" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" name="telefone" class="form-control" maxlength="15" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-tipo {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm, 8px);
+    color: var(--text, #e6edf3);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-tipo:hover { border-color: rgba(255,255,255,0.18); }
+.btn-tipo.selected {
+    border-width: 2px;
+    transform: scale(1.02);
+}
+.btn-tipo.selected[data-tipo="entrada"] { border-color: #4ADE80; background: rgba(34,197,94,0.12); }
+.btn-tipo.selected[data-tipo="saida"]   { border-color: #F87171; background: rgba(239,68,68,0.12); }
+</style>
+
+<script>
+(function () {
+    var motivosPorTipo = {
+        entrada: [
+            {v: 'compra', l: 'Compra'},
+            {v: 'transferencia', l: 'Transferência'},
+            {v: 'outro', l: 'Outro'}
+        ],
+        saida: [
+            {v: 'perda_avaria', l: 'Perda / Avaria'},
+            {v: 'devolucao_fornecedor', l: 'Devolução ao fornecedor'},
+            {v: 'consumo_interno', l: 'Consumo interno'},
+            {v: 'outro', l: 'Outro'}
+        ]
+    };
+    var tipoLabels = { entrada: 'Entrada', saida: 'Saída' };
+    var modal = document.getElementById('modal-movimentar');
+    var form = document.getElementById('form-movimentar');
+    var tipoHidden = document.getElementById('mov-tipo');
+    var motivoEl = document.getElementById('mov-motivo');
+    var fornEl = document.getElementById('mov-fornecedor');
+    var btnRegistrar = document.getElementById('btn-registrar');
+    var grpCusto = document.getElementById('grp-custo');
+    var grpNota = document.getElementById('grp-nota');
+    var grpFornecedor = document.getElementById('grp-fornecedor');
+    var btnNovoForn = document.getElementById('btn-novo-fornecedor');
+    var btnsTipo = modal.querySelectorAll('.btn-tipo');
+    var saldoFornEl = document.getElementById('mov-saldo-forn');
+    var fornVazioEl = document.getElementById('mov-forn-vazio');
+    var currentPk = null;
+    var fornecedoresCache = { entrada: [], vinculados: [] };
+
+    function popularMotivos() {
+        var lista = motivosPorTipo[tipoHidden.value] || [];
+        motivoEl.innerHTML = '';
+        lista.forEach(function(m) {
+            var opt = document.createElement('option');
+            opt.value = m.v; opt.textContent = m.l;
+            motivoEl.appendChild(opt);
+        });
+    }
+
+    function popularFornecededores(lista) {
+        fornEl.innerHTML = '<option value="">Selecionar...</option>';
+        lista.forEach(function(f) {
+            var label = f.nome;
+            if (f.quantidade !== undefined) label += ' (saldo: ' + f.quantidade + ')';
+            var opt = new Option(label, f.id);
+            opt.dataset.quantidade = f.quantidade !== undefined ? f.quantidade : '';
+            fornEl.add(opt);
+        });
+        fornEl.value = '';
+        atualizarSaldoForn();
+    }
+
+    function atualizarSaldoForn() {
+        var opt = fornEl.options[fornEl.selectedIndex];
+        var q = opt && opt.dataset.quantidade;
+        if (q !== undefined && q !== '' && tipoHidden.value !== 'entrada') {
+            saldoFornEl.querySelector('strong').textContent = q + ' ' + document.getElementById('mov-unidade').textContent;
+            saldoFornEl.style.display = '';
+        } else {
+            saldoFornEl.style.display = 'none';
+        }
+    }
+
+    function carregarFornecedores(tipo) {
+        if (!currentPk) return;
+        if (tipo === 'entrada') {
+            // Todos os fornecedores globais (pode comprar de novo)
+            popularFornecededores(fornecedoresCache.entrada);
+            btnNovoForn.style.display = '';
+            fornVazioEl.style.display = 'none';
+            return;
+        }
+        // Saída/Ajuste: só vinculados com saldo > 0, via AJAX
+        btnNovoForn.style.display = 'none';
+        fetch('/apoio/estoque/' + currentPk + '/fornecedores-json/')
+            .then(function(r){ return r.json(); })
+            .then(function(d) {
+                var lista = d.fornecedores.filter(function(f){ return f.quantidade > 0; });
+                popularFornecededores(lista);
+                if (lista.length === 0) {
+                    fornVazioEl.style.display = '';
+                } else {
+                    fornVazioEl.style.display = 'none';
+                }
+            })
+            .catch(function(){ popularFornecededores([]); });
+    }
+
+    function setTipo(t) {
+        tipoHidden.value = t;
+        btnsTipo.forEach(function(b){
+            b.classList.toggle('selected', b.getAttribute('data-tipo') === t);
+        });
+        popularMotivos();
+        atualizarVisibilidade();
+        carregarFornecedores(t);
+    }
+
+    function atualizarVisibilidade() {
+        var ehEntrada = tipoHidden.value === 'entrada';
+        grpCusto.style.display = ehEntrada ? '' : 'none';
+        grpNota.style.display = ehEntrada ? '' : 'none';
+        if (!ehEntrada) { form.custo.value = ''; form.nota_fiscal.value = ''; }
+        btnRegistrar.textContent = 'Registrar ' + tipoLabels[tipoHidden.value];
+    }
+
+    btnsTipo.forEach(function(b){
+        b.addEventListener('click', function(){ setTipo(b.getAttribute('data-tipo')); });
+    });
+    fornEl.addEventListener('change', atualizarSaldoForn);
+
+    modal.addEventListener('show.bs.modal', function (e) {
+        var btn = e.relatedTarget;
+        var pk = btn.getAttribute('data-pk');
+        currentPk = pk;
+        var nome = btn.getAttribute('data-nome');
+        var estoque = btn.getAttribute('data-estoque');
+        var unidade = btn.getAttribute('data-unidade');
+        var custo = btn.getAttribute('data-custo');
+        document.getElementById('mov-nome').textContent = nome;
+        document.getElementById('mov-estoque').textContent = estoque;
+        document.getElementById('mov-unidade').textContent = unidade;
+        document.getElementById('mov-custo-atual').textContent = 'R$ ' + custo;
+        form.action = '{% url "apoio_estoque_movimentar" 0 %}'.replace('/0', '/' + pk);
+        setTipo('entrada');
+        form.quantidade.value = '';
+        form.custo.value = '';
+        form.nota_fiscal.value = '';
+        form.observacao.value = '';
+    });
+
+    // Pré-carrega lista global de fornecedores (para entrada) a partir do server-render
+    {% for f in fornecedores_list %}
+    fornecedoresCache.entrada.push({id: {{ f.pk }}, nome: "{{ f.nome|escapejs }}"});
+    {% endfor %}
+
+    // --- Sub-modal: cadastro rápido de fornecedor ---
+    var modalFornEl = document.getElementById('modal-novo-fornecedor');
+    var formForn = document.getElementById('form-novo-fornecedor');
+    var modalForn = null;
+
+    btnNovoForn.addEventListener('click', function(){
+        modalForn = modalForn || new bootstrap.Modal(modalFornEl);
+        formForn.reset();
+        modalForn.show();
+    });
+
+    // Máscara de telefone adaptativa
+    var telEl = formForn.querySelector('input[name="telefone"]');
+    telEl.addEventListener('input', function() {
+        var v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length <= 10) {
+            v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+            v = v.replace(/(\d{4})(\d)/, '$1-$2');
+        } else {
+            v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+            v = v.replace(/(\d{5})(\d)/, '$1-$2');
+        }
+        this.value = v;
+    });
+
+    formForn.addEventListener('submit', function(e){
+        e.preventDefault();
+        var fd = new FormData(formForn);
+        var csrf = formForn.querySelector('[name=csrfmiddlewaretoken]').value;
+        fetch('{% url "apoio_fornecedor_create_ajax" %}', {
+            method: 'POST',
+            body: fd,
+            headers: {'X-CSRFToken': csrf}
+        }).then(function(r){ return r.json(); }).then(function(d){
+            if (d.error) { alert(d.error); return; }
+            var opt = new Option(d.nome, d.id, true, true);
+            fornEl.add(opt);
+            fornEl.value = d.id;
+            modalForn.hide();
+            formForn.reset();
+        }).catch(function(){ alert('Erro ao cadastrar fornecedor.'); });
+    });
+})();
+</script>
+{% endblock %}

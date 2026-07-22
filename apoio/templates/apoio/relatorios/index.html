@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% block title %}Relatórios — Apoio — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Relatórios — Apoio</h1>
+        <p class="page-subtitle">Consumo mensal, visão geral e exportação</p>
+    </div>
+</div>
+
+<div class="content-card mb-4">
+    <div class="card-header">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <select name="mes" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                {% for idx, nome in meses_choices %}
+                <option value="{{ idx }}" {% if mes == idx %}selected{% endif %}>{{ nome }}</option>
+                {% endfor %}
+            </select>
+            <select name="ano" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                {% for y in anos_disponiveis %}<option value="{{ y }}" {% if ano == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+            </select>
+            <span class="text-muted ms-auto small">Mês selecionado: <strong>{{ mes_nome }}/{{ ano }}</strong></span>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'apoio_exportar_csv' %}?tipo=produtos" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-spreadsheet"></i> Exportar Estoque (CSV)
+            </a>
+            <a href="{% url 'apoio_exportar_csv' %}?tipo=patrimonios" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-spreadsheet"></i> Exportar Patrimônios (CSV)
+            </a>
+            <a href="{% url 'apoio_exportar_csv' %}?tipo=movimentacoes&mes={{ mes }}&ano={{ ano }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-file-spreadsheet"></i> Exportar Movimentações de {{ mes_nome }}/{{ ano }} (CSV)
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon green"><i class="bi bi-arrow-down-circle"></i></div>
+            <div class="card-info"><h3>{{ entradas_mes }}</h3><p>Entradas em {{ mes_nome }}</p></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon red"><i class="bi bi-arrow-up-circle"></i></div>
+            <div class="card-info"><h3>{{ saidas_mes }}</h3><p>Saídas em {{ mes_nome }}</p></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon orange"><i class="bi bi-cash-stack"></i></div>
+            <div class="card-info"><h3>R$ {{ custo_consumo|floatformat:2 }}</h3><p>Custo do Consumo</p></div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card">
+            <div class="card-icon blue"><i class="bi bi-building"></i></div>
+            <div class="card-info"><h3>{{ total_patrimonios }}</h3><p>Patrimônios</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-graph-up me-2"></i>Entradas vs Saídas — {{ ano }}</div>
+            <div class="card-body"><canvas id="chartAnual" height="100"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Saídas por Motivo — {{ mes_nome }}/{{ ano }}</div>
+            <div class="card-body"><canvas id="chartMotivo" height="160"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Top 10 Consumo — {{ mes_nome }}/{{ ano }}</div>
+            <div class="card-body"><canvas id="chartTop" height="160"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-box-seam me-2"></i>Consumo por Produto — {{ mes_nome }}/{{ ano }}</div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height:360px; overflow-y:auto;">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Produto</th><th>Categoria</th>
+                                <th class="text-end">Entradas</th><th class="text-end">Saídas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in consumo_por_produto %}
+                            <tr>
+                                <td><strong>{{ c.produto__nome }}</strong>{% if c.produto__marca %}<br><small class="text-muted">{{ c.produto__marca }}</small>{% endif %}</td>
+                                <td><small>{{ c.produto__categoria }}</small></td>
+                                <td class="text-end text-success">{{ c.entradas|default:"—" }}</td>
+                                <td class="text-end text-danger">{{ c.saidas|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-muted text-center py-4">Nenhuma movimentação em {{ mes_nome }}/{{ ano }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="content-card mb-4">
+            <div class="card-header"><i class="bi bi-tag me-2"></i>Saídas por Motivo — {{ mes_nome }}/{{ ano }}</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" style="max-height:360px; overflow-y:auto;">
+                    {% for s in saidas_por_motivo %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong class="small">{{ s.motivo|default:"Sem motivo" }}</strong>
+                            <small class="text-muted d-block">{{ s.count }} movimentação(ões)</small>
+                        </div>
+                        <span class="badge badge-ativo-nao">{{ s.total }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-4">Nenhuma saída registrada neste mês</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-calendar3 me-2"></i>Resumo Anual {{ ano }}</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr><th>Mês</th><th class="text-end">Entradas</th><th class="text-end">Saídas</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for mt in monthly_totals %}
+                            <tr>
+                                <td>{{ mt.mes }}</td>
+                                <td class="text-end text-success">{{ mt.entradas|default:"0" }}</td>
+                                <td class="text-end text-danger">{{ mt.saidas|default:"0" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td>Total {{ ano }}</td>
+                                <td class="text-end text-success">{{ ano_total_entradas }}</td>
+                                <td class="text-end text-danger">{{ ano_total_saidas }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="content-card mb-4">
+            <div class="card-header"><i class="bi bi-pie-chart me-2"></i>Patrimônios por Setor</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for s in por_setor %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ s.setor|upper }}</span>
+                        <span class="badge badge-categoria">{{ s.total }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Nenhum patrimônio</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div class="card-header"><i class="bi bi-bar-chart me-2"></i>Patrimônios por Situação</div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for s in por_situacao %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ s.situacao|title }}</span>
+                        <span class="badge badge-categoria">{{ s.total }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="list-group-item text-muted text-center py-3">Nenhum patrimônio</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-card mt-4">
+    <div class="card-header"><i class="bi bi-box-seam me-2"></i>Visão Geral do Estoque</div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <small class="text-muted d-block">Total de Produtos</small>
+                <strong>{{ total_produtos }}</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">Valor de Custo Total</small>
+                <strong>R$ {{ valor_custo_total|floatformat:2 }}</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">Estoque Baixo</small>
+                <strong class="text-warning">{{ baixo }}</strong>
+            </div>
+            <div class="col-md-3">
+                <small class="text-muted d-block">Sem Estoque</small>
+                <strong class="text-danger">{{ zerado }}</strong>
+            </div>
+        </div>
+        <hr>
+        <h6 class="fw-bold mb-2">Produtos por Categoria</h6>
+        <div class="d-flex flex-wrap gap-2">
+            {% for c in por_categoria %}
+            <span class="badge badge-categoria">{{ c.categoria|title }}: {{ c.total }}</span>
+            {% empty %}
+            <span class="text-muted small">Nenhum produto</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tickColor = '#64748B';
+    const gridColor = 'rgba(36,50,71,0.5)';
+    const tooltipStyle = {
+        backgroundColor: '#111827', titleColor: '#F8FAFC', bodyColor: '#94A3B8',
+        borderColor: 'rgba(255,255,255,0.06)', borderWidth: 1, padding: 10, cornerRadius: 6, displayColors: true
+    };
+    const baseOpts = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false, labels: { color: tickColor } }, tooltip: tooltipStyle },
+        scales: {
+            x: { ticks: { color: tickColor, maxRotation: 45 }, grid: { color: gridColor }, border: { color: gridColor } },
+            y: { ticks: { color: tickColor, stepSize: 1, beginAtZero: true }, grid: { color: gridColor }, border: { color: gridColor } }
+        }
+    };
+
+    // 1. Entradas vs Saídas (linha, 12 meses)
+    const optsLinha = JSON.parse(JSON.stringify(baseOpts));
+    optsLinha.plugins.legend.display = true;
+    optsLinha.plugins.legend.position = 'top';
+    new Chart(document.getElementById('chartAnual'), {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels_mes|safe }},
+            datasets: [
+                { label: 'Entradas', data: {{ chart_entradas|safe }}, borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.08)', tension: 0.3, fill: true, pointBackgroundColor: '#4ADE80', borderWidth: 2 },
+                { label: 'Saídas', data: {{ chart_saidas|safe }}, borderColor: '#F87171', backgroundColor: 'rgba(248,113,113,0.06)', tension: 0.3, fill: true, pointBackgroundColor: '#F87171', borderWidth: 2 }
+            ]
+        },
+        options: optsLinha
+    });
+
+    // 2. Saídas por Motivo (doughnut)
+    const optsDonut = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'bottom', labels: { color: tickColor, padding: 10, font: { size: 11 } } }, tooltip: tooltipStyle }
+    };
+    const donutColors = ['rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(37,99,235,0.7)','rgba(139,92,246,0.7)','rgba(34,197,94,0.7)','rgba(56,189,248,0.7)'];
+    new Chart(document.getElementById('chartMotivo'), {
+        type: 'doughnut',
+        data: { labels: {{ chart_motivo_labels|safe }}, datasets: [{ data: {{ chart_motivo_data|safe }}, backgroundColor: donutColors, borderWidth: 0 }] },
+        options: optsDonut
+    });
+
+    // 3. Top 10 Consumo (barra horizontal)
+    const optsHor = JSON.parse(JSON.stringify(baseOpts));
+    optsHor.indexAxis = 'y';
+    new Chart(document.getElementById('chartTop'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_top_labels|safe }},
+            datasets: [
+                { label: 'Saídas', data: {{ chart_top_saidas|safe }}, backgroundColor: 'rgba(239,68,68,0.7)', borderRadius: 6 },
+                { label: 'Entradas', data: {{ chart_top_entradas|safe }}, backgroundColor: 'rgba(34,197,94,0.7)', borderRadius: 6 }
+            ]
+        },
+        options: optsHor
+    });
+});
+</script>
+{% endblock %}

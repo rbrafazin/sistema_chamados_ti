@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Patrimônios — ABM TI{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="page-title">Patrimônios</h1>
+        <p class="page-subtitle">Bens da empresa</p>
+    </div>
+    <a href="{% url 'apoio_patrimonio_create' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Novo Patrimônio</a>
+</div>
+
+<div class="content-card">
+    <div class="card-header">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-center w-100">
+            <select name="setor" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Setor...</option>
+                {% for val, label in setores %}
+                <option value="{{ val }}" {% if current_setor == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="categoria" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Categoria...</option>
+                {% for val, label in categorias %}
+                <option value="{{ val }}" {% if current_categoria == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="situacao" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Status...</option>
+                {% for val, label in situacoes %}
+                <option value="{{ val }}" {% if current_situacao == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="responsavel" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                <option value="">Responsável...</option>
+                {% for r in responsaveis %}
+                <option value="{{ r }}" {% if current_responsavel == r %}selected{% endif %}>{{ r }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="busca" class="form-control form-control-sm" placeholder="Pesquisar por nome, patrimônio, marca..." value="{{ busca|default:'' }}" style="max-width:250px;">
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filtrar</button>
+            <a href="{% url 'apoio_patrimonio_list' %}" class="btn btn-outline-secondary btn-sm">Limpar</a>
+        </form>
+    </div>
+    <div class="card-body">
+        {% if patrimonios %}
+        <div class="product-grid">
+            {% for p in patrimonios %}
+            <div class="product-card">
+                <div class="pc-header">
+                    <a href="{% url 'apoio_patrimonio_detail' p.pk %}" class="pc-title text-decoration-none">{{ p.numero_patrimonio }}</a>
+                    <div class="d-flex flex-column align-items-end gap-1">
+                        <span class="badge badge-categoria">{{ p.get_categoria_display }}</span>
+                        {% if p.situacao == 'em_uso' %}<span class="badge badge-status-ativo">Em Uso</span>
+                        {% elif p.situacao == 'disponivel' %}<span class="badge badge-prioridade-media">Disponível</span>
+                        {% elif p.situacao == 'manutencao' %}<span class="badge badge-status-manutencao">Manutenção</span>
+                        {% else %}<span class="badge badge-ativo-nao">Baixado</span>{% endif %}
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <span style="color:var(--text);font-weight:500;">{{ p.nome }}</span>
+                    {% if p.marca or p.modelo %}
+                    <small class="text-muted d-block">{{ p.marca }}{% if p.marca and p.modelo %} &middot; {% endif %}{{ p.modelo }}</small>
+                    {% endif %}
+                </div>
+                <div class="pc-body">
+                    <span class="pc-stat"><i class="bi bi-geo-alt"></i> {{ p.get_setor_display }}</span>
+                    {% if p.responsavel %}
+                    <span class="pc-stat"><i class="bi bi-person"></i> {{ p.responsavel }}</span>
+                    {% endif %}
+                </div>
+                {% if p.valor_aquisicao %}
+                <div class="pc-supplier">R$ {{ p.valor_aquisicao|floatformat:2 }}</div>
+                {% endif %}
+                <div class="pc-actions">
+                    <a href="{% url 'apoio_patrimonio_detail' p.pk %}" class="btn btn-outline-primary btn-sm" title="Ver"><i class="bi bi-eye"></i></a>
+                    <a href="{% url 'apoio_patrimonio_edit' p.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'apoio_patrimonio_delete' p.pk %}" class="btn btn-outline-danger btn-sm" title="Excluir"><i class="bi bi-trash"></i></a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Nenhum patrimônio encontrado</p>
+        {% endif %}
+    </div>
+    {% include 'includes/pagination.html' with page_obj=patrimonios %}
+</div>
+{% endblock %}

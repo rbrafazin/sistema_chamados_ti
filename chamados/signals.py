@@ -19,8 +19,7 @@ Novo chamado registrado no sistema ABM TI.
 
 #{instance.pk} - {instance.titulo}
 Solicitante: {instance.solicitante}
-Setor: {instance.setor}
-Prioridade: {instance.get_prioridade_display()}
+Setor: {instance.get_setor_display()}
 Status: {instance.get_status_display()}
 
 Descrição:

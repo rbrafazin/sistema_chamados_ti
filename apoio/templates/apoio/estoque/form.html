@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ action }} — Estoque — ABM TI{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <h1 class="page-title">{{ action }}</h1>
+    <p class="page-subtitle">Preencha os dados do produto</p>
+</div>
+
+<div class="content-card" style="max-width:800px;">
+    <div class="card-body">
+        {% if produto %}
+        <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-2"></i>A quantidade em estoque e o valor de custo são alterados apenas via <strong>movimentações</strong>. Fornecedores são vinculados na página do produto.</div>
+        {% else %}
+        <div class="alert alert-info mb-3"><i class="bi bi-info-circle me-2"></i>Após cadastrar, use <strong>Movimentar</strong> para registrar a primeira compra (quantidade, custo, fornecedor e nota fiscal).</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form.nome|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.marca|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.categoria|as_crispy_field }}</div>
+            </div>
+            {% if produto %}
+            <div class="row">
+                <div class="col-md-3 mb-3">{{ form.quantidade_estoque|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.estoque_minimo|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.unidade_medida|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.valor_custo|as_crispy_field }}</div>
+            </div>
+            {% else %}
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form.estoque_minimo|as_crispy_field }}</div>
+                <div class="col-md-6 mb-3">{{ form.unidade_medida|as_crispy_field }}</div>
+            </div>
+            {% endif %}
+            {{ form.descricao|as_crispy_field }}
+            {{ form.observacoes|as_crispy_field }}
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+                <a href="{% url 'apoio_estoque_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

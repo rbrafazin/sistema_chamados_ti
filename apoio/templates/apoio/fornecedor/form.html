@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ action }} — Fornecedores — ABM TI{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <h1 class="page-title">{{ action }}</h1>
+    <p class="page-subtitle">Preencha os dados do fornecedor</p>
+</div>
+
+<div class="content-card" style="max-width:700px;">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8 mb-3">{{ form.nome|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.cnpj|as_crispy_field }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form.categoria|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.contato|as_crispy_field }}</div>
+                <div class="col-md-3 mb-3">{{ form.telefone|as_crispy_field }}</div>
+            </div>
+            {{ form.email|as_crispy_field }}
+            {{ form.observacoes|as_crispy_field }}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+                <a href="{% url 'apoio_fornecedor_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+// CNPJ mask: XX.XXX.XXX/XXXX-XX
+var cnpjEl = document.querySelector('input[name="cnpj"]');
+cnpjEl.addEventListener('input', function() {
+    var v = this.value.replace(/\D/g, '').slice(0, 14);
+    v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+    v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+    v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+    v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    this.value = v;
+});
+
+// Phone mask — adaptative: (XX) XXXX-XXXX or (XX) XXXXX-XXXX
+var telEl = document.querySelector('input[name="telefone"]');
+telEl.addEventListener('input', function() {
+    var v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length <= 10) {
+        v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+        v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+        v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    }
+    this.value = v;
+});
+</script>
+{% endblock %}

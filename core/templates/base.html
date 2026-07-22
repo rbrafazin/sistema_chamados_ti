@@ -22,6 +22,27 @@
                 <img src="{% static 'img/Logo_ABM_colorida.png' %}" alt="ABM TI" class="logo-img">
             </div>
             <nav class="sidebar-nav">
+                {% if user.perfil.setor == 'apoio' %}
+                <div class="nav-section">Apoio</div>
+                <a href="{% url 'apoio_dashboard' %}" class="{% if request.resolver_match.url_name == 'apoio_dashboard' %}active{% endif %}">
+                    <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                </a>
+                <a href="{% url 'apoio_estoque_list' %}" class="{% if 'estoque' in request.path %}active{% endif %}">
+                    <i class="bi bi-box-seam"></i> <span>Estoque</span>
+                </a>
+                <a href="{% url 'apoio_fornecedor_list' %}" class="{% if 'fornecedor' in request.path %}active{% endif %}">
+                    <i class="bi bi-truck"></i> <span>Fornecedores</span>
+                </a>
+                <a href="{% url 'apoio_patrimonio_list' %}" class="{% if 'patrimonio' in request.path %}active{% endif %}">
+                    <i class="bi bi-building"></i> <span>Patrimônios</span>
+                </a>
+                <a href="{% url 'apoio_movimentacoes_list' %}" class="{% if 'movimentacoes' in request.path %}active{% endif %}">
+                    <i class="bi bi-arrow-left-right"></i> <span>Movimentações</span>
+                </a>
+                <a href="{% url 'apoio_relatorios' %}" class="{% if 'apoio_relatorios' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+                    <i class="bi bi-bar-chart-line"></i> <span>Relatórios</span>
+                </a>
+                {% else %}
                 <div class="nav-section" data-toggle="nav-group">Principal <i class="bi bi-chevron-down ms-auto"></i></div>
                 <div class="nav-group" data-group="principal">
                 <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -59,6 +80,7 @@
                     <i class="bi bi-people"></i> <span>Usuários</span>
                 </a>
                 </div>
+                {% endif %}
                 {% endif %}
             </nav>
         </aside>

@@ -204,7 +204,7 @@ def enviar_relatorio(request):
     email.attach(f'relatorio_{ano}_{mes:02d}.pdf', pdf, 'application/pdf')
     email.send(fail_silently=False)
     messages.success(request, f'Relatório {dados["mes_ano"]} enviado com sucesso!')
-    return redirect(f'{request.path_info}?mes={mes}&ano={ano}')
+    return redirect(f'/relatorios/?mes={mes}&ano={ano}')
 
 
 @login_required

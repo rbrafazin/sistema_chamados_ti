@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ action }} — Patrimônio — ABM TI{% endblock %}
+{% block content %}
+<div class="mb-3">
+    <h1 class="page-title">{{ action }}</h1>
+    <p class="page-subtitle">Preencha os dados do patrimônio</p>
+</div>
+
+<div class="content-card" style="max-width:800px;">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-4 mb-3">{{ form.numero_patrimonio|as_crispy_field }}</div>
+                <div class="col-md-8 mb-3">{{ form.nome|as_crispy_field }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">{{ form.marca|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.modelo|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.categoria|as_crispy_field }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">{{ form.setor|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.responsavel|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.situacao|as_crispy_field }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">{{ form.data_aquisicao|as_crispy_field }}</div>
+                <div class="col-md-4 mb-3">{{ form.valor_aquisicao|as_crispy_field }}</div>
+            </div>
+            {{ form.descricao|as_crispy_field }}
+            {{ form.observacoes|as_crispy_field }}
+            {{ form.imagem|as_crispy_field }}
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Salvar</button>
+                <a href="{% url 'apoio_patrimonio_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

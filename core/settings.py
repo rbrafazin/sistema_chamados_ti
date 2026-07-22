@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'relatorios',
     'usuarios',
     'portal',
+    'apoio',
 ]
 
 MIDDLEWARE = [
